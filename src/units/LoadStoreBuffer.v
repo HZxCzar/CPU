@@ -4,7 +4,6 @@ module LoadStoreBuffer(
 	input  wire					rdy_in,			// ready signal, pause cpu when low
     
     input  wire                 _clear,
-    input  wire                 _stall,
 
     //from InstFetcher
     input wire                 _ls_ready,

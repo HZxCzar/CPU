@@ -4,7 +4,6 @@ module ALU(
 	input  wire					rdy_in,			// ready signal, pause cpu when low
     
     input  wire                 _clear,
-    input  wire                 _stall,
 
     //ReservationStation inputs
     input wire          _alu_ready,

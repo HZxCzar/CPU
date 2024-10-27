@@ -6,7 +6,7 @@ module InstFetcher(
 	input  wire					rdy_in,			// ready signal, pause cpu when low
     
     input  wire                 _clear,
-    input  wire _stall,
+    input  wire                 _stall,
     input  wire [31:0] _inst_in,
     input  wire                 _inst_ready_in,
 

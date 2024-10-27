@@ -1,10 +1,9 @@
-module ReservationStation(
+module LoadStoreBufferRS(
     input  wire                 clk_in,			// system clock signal
     input  wire                 rst_in,			// reset signal
 	input  wire					rdy_in,			// ready signal, pause cpu when low
     
     input  wire                 _clear,
-    input  wire                 _stall,
 
     // InstFetcher inputs
     input wire                 _rs_ready,
@@ -42,5 +41,10 @@ module ReservationStation(
     output wire          _alu_ready,
     output wire [4:0]    _alu_rob_id,
     output wire [31:0]   _alu_value,
+
+    //to LoadStoreBuffer
+    output wire                _lsb_rs_ready,
+    output wire [4:0]          _lsb_rob_id, 
+    output wire [31:0]         _lsb_st_value,
 );
 endmodule
