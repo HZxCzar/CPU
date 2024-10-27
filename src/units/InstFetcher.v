@@ -7,9 +7,10 @@ module InstFetcher(
     
     input  wire                 _clear,
     input  wire                 _stall,
-    input  wire [31:0] _inst_in,
-    input  wire                 _inst_ready_in,
 
+    //Mem
+    input  wire                 _inst_ready_in,
+    input  wire [31:0]          _inst_in,
     output reg [31:0] _pc,
 
     // input  wire _br_dc,

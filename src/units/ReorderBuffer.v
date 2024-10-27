@@ -30,8 +30,12 @@ module ReorderBuffer(
 
     //from ReservationStation
     //ReservationStation outputs
-    output  wire                 _rob_msg_ready,
-    output  wire [4:0]           _rob_msg_id,
+    output  wire                 _rob_msg_ready_1,
+    output  wire [4:0]           _rob_msg_rob_id_1,
+    output  wire [31:0]          _rob_msg_value_1,
+    output  wire                 _rob_msg_ready_2,
+    output  wire [4:0]           _rob_msg_rob_id_2,
+    output  wire [31:0]          _rob_msg_value_2,
 
     //CDB inputs
     input  wire                _cdb_ready,

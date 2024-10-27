@@ -14,15 +14,19 @@ module RegisterFile(
     input wire [4:0]          _rob_commit_register_id,
     input wire [31:0]         _rob_commit_value,
 
-    //from ReservationStation
-    input wire [4:0] _get_register_id_1,
-    output wire      _get_has_dependency_1,
-    output wire [4:0] _get_dependency_1,
-    output wire [31:0] _get_value_1,
+    //from InstFetcher
+    input wire [4:0]           _get_register_id_dependency_1,
+    input wire [4:0]           _get_register_id_dependency_2,
+    output wire                  _register_id_has_dependency_1,
+    output wire [4:0]            _register_id_dependency_1,
+    output wire [31:0]           _register_value_1,
+    output wire                  _register_id_has_dependency_2,
+    output wire [4:0]            _register_id_dependency_2,
+    output wire [31:0]           _register_value_2,
 
-    input wire [4:0] _get_register_id_2,
-    output wire      _get_has_dependency_2,
-    output wire [4:0] _get_dependency_2,
-    output wire [31:0] _get_value_2,
+    //to ReservationStation
+    output  wire                 _rf_msg_ready,
+    output  wire [4:0]           _rf_msg_rob_id,
+    output  wire [31:0]          _rf_msg_value,
 );
 endmodule

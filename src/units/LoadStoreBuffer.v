@@ -13,8 +13,8 @@ module LoadStoreBuffer(
 
     //from LoadStoreBufferRS
     input wire                _lsb_rs_ready,
-    input wire [4:0]          _rs_rob_id, 
-    input wire [31:0]         _rs_st_value,
+    input wire [4:0]          _lsb_rs_rob_id, 
+    input wire [31:0]         _lsb_rs_st_value,
 
     //from ALU
     input wire                _lsb_alu_ready,

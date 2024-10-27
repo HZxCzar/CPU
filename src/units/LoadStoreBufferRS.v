@@ -10,7 +10,7 @@ module LoadStoreBufferRS(
     input wire [4:0]           _rs_type,
     input wire [4:0]         _rs_rob_id,
     input wire [31:0]          _rs_r1,
-    input wire [31:0]           _rs_r2,
+    input wire [31:0]           _rs_sv,
     input wire [31:0]           _rs_imm,
     input wire               _rs_has_dep1,
     input wire [4:0]         _rs_dep1,
@@ -28,12 +28,17 @@ module LoadStoreBufferRS(
     input wire [31:0]         _cdb_ls_value,
 
     //ROB inputs
-    input  wire                 _rob_msg_ready,
-    input  wire [4:0]           _rob_msg_id,
+    input  wire                 _rob_msg_ready_1,
+    input  wire [4:0]           _rob_msg_rob_id_1,
+    input  wire [31:0]          _rob_msg_value_1,
+    input  wire                 _rob_msg_ready_2,
+    input  wire [4:0]           _rob_msg_rob_id_2,
+    input  wire [31:0]          _rob_msg_value_2,
 
     //RegisterFile inputs
     input  wire                 _rf_msg_ready,
-    input  wire [4:0]           _rf_msg_id,
+    input  wire [4:0]           _rf_msg_rob_id,
+    input  wire [31:0]          _rf_msg_value,
 
     //ALU inputs
     input wire          _alu_full,
