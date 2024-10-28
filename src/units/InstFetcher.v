@@ -7,17 +7,17 @@ module InstFetcher(
 	input  wire					rdy_in,			// ready signal, pause cpu when low
     
     input  wire                 _clear,
-    input  wire                 _stall,
+    output  wire                _stall,
 
     //Mem
-    input  wire                 _inst_ready_in,
-    input  wire [31:0]          _inst_in,
-    output wire                 _InstFetcher_need_inst,
+    input  wire                  _inst_ready_in,
+    input  wire [31:0]           _inst_in,
+    // output wire               _InstFetcher_need_inst,
     output wire [31:0]           _pc,
 
     //ROB Branch
-    input  wire _br_rob,
-    input  wire [31:0] _rob_new_pc,
+    input  wire                 _br_rob,
+    input  wire [31:0]          _rob_new_pc,
 
     //Inner Decoder
 
@@ -55,15 +55,15 @@ module InstFetcher(
     input  wire                 _rs_full,
     //ReservationStation outputs
     output wire                 _rs_ready,
-    output wire [4:0]        _rs_type,
-    output wire [4:0]         _rs_rob_id,
+    output wire [4:0]           _rs_type,
+    output wire [4:0]           _rs_rob_id,
     output wire [31:0]          _rs_r1,
     output wire [31:0]          _rs_r2,
-    output wire [31:0]        _rs_imm,
-    output wire               _rs_has_dep1,
-    output wire [4:0]         _rs_dep1,
-    output wire               _rs_has_dep2,
-    output wire [4:0]         _rs_dep2,
+    output wire [31:0]          _rs_imm,
+    output wire                 _rs_has_dep1,
+    output wire [4:0]           _rs_dep1,
+    output wire                 _rs_has_dep2,
+    output wire [4:0]           _rs_dep2,
 
     //LoadStoreBuffer inputs
     input  wire                 _lsb_full,

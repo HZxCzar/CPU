@@ -52,16 +52,16 @@ module Issue(
     //ReservationStation inputs
     input  wire                 _rs_full,
     //ReservationStation outputs
-    output reg                 _rs_ready,
-    output reg [4:0]           _rs_type,
-    output wire [4:0]         _rs_rob_id,
+    output reg                  _rs_ready,
+    output reg [4:0]            _rs_type,
+    output wire [4:0]           _rs_rob_id,
     output wire [31:0]          _rs_r1,
-    output wire [31:0]           _rs_r2,
-    output wire [31:0]           _rs_imm,
-    output wire               _rs_has_dep1,
-    output wire [4:0]         _rs_dep1,
-    output wire               _rs_has_dep2,
-    output wire [4:0]         _rs_dep2,
+    output wire [31:0]          _rs_r2,
+    output wire [31:0]          _rs_imm,
+    output wire                 _rs_has_dep1,
+    output wire [4:0]           _rs_dep1,
+    output wire                 _rs_has_dep2,
+    output wire [4:0]           _rs_dep2,
 
     //LoadStoreBuffer inputs
     input  wire                 _lsb_full,
@@ -171,4 +171,5 @@ fifo addr_q4(
     .full(_adder_queue_full),
     .empty(_adder_queue_empty)
 );
+assign _work_valid = !_inst_queue_empty && !_adder_queue_empty && !_rob_full && !_rs_full && !_lsb_full && !_lsb_rs_full;
 endmodule

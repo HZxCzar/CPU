@@ -24,7 +24,7 @@ module cpu(
 	
 	input  wire                 io_buffer_full, // 1 if uart buffer is full
 	
-	output wire [31:0]			dbgreg_dout		// cpu register output (debugging demo)
+	output wire [31:0]			    dbgreg_dout		// cpu register output (debugging demo)
 );
 
 // implementation goes here
@@ -40,7 +40,7 @@ module cpu(
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
 wire _clear;
-wire _stall;
+reg _stall;
 //CDB
 wire _cdb_ready;
 wire [4:0]          _cdb_rob_id;
@@ -53,7 +53,7 @@ wire [31:0]         _cdb_ls_value;
 //Mem & Fetcher
 wire _inst_ready_in_Mem2Fetcher;
 wire [31:0] _inst_in_Mem2Fetcher;
-wire _InstFetcher_need_inst;
+wire _stall_set_Fetcher2Mem;
 wire [31:0] _pc_Fetcher2Mem;
 
 //Fetcher & ReservationStation
@@ -134,6 +134,8 @@ wire _alu_ready_ALU2ReservationStation;
 wire [4:0] _alu_rob_id_ALU2ReservationStation;
 wire [31:0] _alu_value_ALU2ReservationStation;
 
+//ROB & MEN
+wire _stall_recover_ROB2Mem;
 
 //ROB & RegisterFile
 wire _rf_launch_ready_ROB2RegisterFile;
@@ -181,7 +183,7 @@ MemControl MEM(
   ._inst_ready_in_Mem2Fetcher(_inst_ready_in_Mem2Fetcher),
   ._inst_in_Mem2Fetcher(_inst_in_Mem2Fetcher),
   ._pc_Fetcher2Mem(_pc_Fetcher2Mem),
-  ._InstFetcher_need_inst(_InstFetcher_need_inst),
+  ._InstFetcher_need_inst(_stall),
   ._lsb_mem_ready_LoadStoreBuffer2Mem(_lsb_mem_ready_LoadStoreBuffer2Mem),
   ._r_nw_in_LoadStoreBuffer2Mem(_r_nw_in_LoadStoreBuffer2Mem),
   ._addr_LoadStoreBuffer2Mem(_addr_LoadStoreBuffer2Mem),
@@ -195,7 +197,7 @@ InstFetcher Fetcher(
   .rst_in(rst_in),
   .rdy_in(rdy_in),
   ._clear(_clear),
-  ._stall(_stall),
+  ._stall(_stall_set_Fetcher2Mem),
   ._inst_ready_in(_inst_ready_in_Mem2Fetcher),
   ._inst_in(_inst_in_Mem2Fetcher),
   ._InstFetcher_need_inst(_InstFetcher_need_inst),
@@ -387,7 +389,7 @@ ReorderBuffer ROB(
   .rst_in(rst_in),
   .rdy_in(rdy_in),
   ._clear(_clear),
-  ._stall(_stall),
+  ._stall(_stall_recover_ROB2Mem),
   ._get_register_status_1(_get_register_status_1_Fetcher2ROB),
   ._get_register_status_2(_get_register_status_2_Fetcher2ROB),
   ._register_ready_1(_register_ready_1_Fetcher2ROB),
@@ -448,7 +450,7 @@ RegisterFile RF(
   ._rf_msg_value(_rf_msg_value_RS2RegisterFile)
 );
 
-
+//每周期stall要flush
 // always @(posedge clk_in)
 //   begin
 //     if (rst_in)

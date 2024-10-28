@@ -6,26 +6,26 @@ module LoadStoreBufferRS(
     input  wire                 _clear,
 
     // InstFetcher inputs
-    input wire                 _rs_ready,
-    input wire [4:0]           _rs_type,
-    input wire [4:0]         _rs_rob_id,
-    input wire [31:0]          _rs_r1,
+    input wire                  _rs_ready,
+    input wire [4:0]            _rs_type,
+    input wire [4:0]            _rs_rob_id,
+    input wire [31:0]           _rs_r1,
     input wire [31:0]           _rs_sv,
     input wire [31:0]           _rs_imm,
-    input wire               _rs_has_dep1,
-    input wire [4:0]         _rs_dep1,
-    input wire               _rs_has_dep2,
-    input wire [4:0]         _rs_dep2,
+    input wire                  _rs_has_dep1,
+    input wire [4:0]            _rs_dep1,
+    input wire                  _rs_has_dep2,
+    input wire [4:0]            _rs_dep2,
     // InstFetcher outputs
-    output wire              _rs_full,
+    output wire                 _rs_full,
 
     //CDB inputs
-    input wire                _cdb_ready,
-    input wire [4:0]          _cdb_rob_id,
-    input wire [31:0]         _cdb_value,
-    input wire                _cdb_ls_ready,
-    input wire [4:0]          _cdb_ls_rob_id,
-    input wire [31:0]         _cdb_ls_value,
+    input wire                  _cdb_ready,
+    input wire [4:0]            _cdb_rob_id,
+    input wire [31:0]           _cdb_value,
+    input wire                  _cdb_ls_ready,
+    input wire [4:0]            _cdb_ls_rob_id,
+    input wire [31:0]           _cdb_ls_value,
 
     //ROB inputs
     input  wire                 _rob_msg_ready_1,
@@ -41,15 +41,15 @@ module LoadStoreBufferRS(
     input  wire [31:0]          _rf_msg_value,
 
     //ALU inputs
-    input wire          _alu_full,
+    input wire                  _alu_full,
     //ALU outputs
-    output wire          _alu_ready,
-    output wire [4:0]    _alu_rob_id,
-    output wire [31:0]   _alu_value,
+    output wire                 _alu_ready,
+    output wire [4:0]           _alu_rob_id,
+    output wire [31:0]          _alu_value,
 
     //to LoadStoreBuffer
-    output wire                _lsb_rs_ready,
-    output wire [4:0]          _lsb_rob_id, 
-    output wire [31:0]         _lsb_st_value
+    output wire                 _lsb_rs_ready,
+    output wire [4:0]           _lsb_rob_id, 
+    output wire [31:0]          _lsb_st_value
 );
 endmodule

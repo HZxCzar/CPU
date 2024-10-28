@@ -6,9 +6,9 @@ module ALU(
     input  wire                 _clear,
 
     //ReservationStation inputs
-    input wire          _alu_ready,
-    input wire [4:0]    _alu_rob_id,
-    input wire [31:0]   _alu_value,
+    input wire           _alu_ready,
+    input wire [4:0]     _alu_rob_id,
+    input wire [31:0]    _alu_value,
     //ReservationStation outputs
     output wire          _alu_full,
 
