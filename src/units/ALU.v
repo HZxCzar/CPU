@@ -15,6 +15,6 @@ module ALU(
     //CDB outputs
     output wire          _cdb_ready,
     output wire [4:0]    _cdb_rob_id,
-    output wire [31:0]   _cdb_value,
+    output wire [31:0]   _cdb_value
 );
 endmodule

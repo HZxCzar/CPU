@@ -27,6 +27,6 @@ module RegisterFile(
     //to ReservationStation
     output  wire                 _rf_msg_ready,
     output  wire [4:0]           _rf_msg_rob_id,
-    output  wire [31:0]          _rf_msg_value,
+    output  wire [31:0]          _rf_msg_value
 );
 endmodule

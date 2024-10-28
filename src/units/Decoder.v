@@ -27,10 +27,10 @@ module Decoder(
     output wire [4:0]           _get_register_status_1,
     output wire [4:0]           _get_register_status_2,
     //ROB inputs with dependencies
-    input wire                  _register_ready_1,
-    input wire [31:0]           _register_value_1,
-    input wire                  _register_ready_2,
-    input wire [31:0]           _register_value_2,
+    input wire                  _rob_register_ready_1,
+    input wire [31:0]           _rob_register_value_1,
+    input wire                  _rob_register_ready_2,
+    input wire [31:0]           _rob_register_value_2,
 
     //ROB inputs
     input  wire                 _rob_full,
@@ -76,6 +76,6 @@ module Decoder(
     output wire               _lsb_rs_has_dep1,
     output wire [4:0]         _lsb_rs_dep1,
     output wire               _lsb_rs_has_dep2,
-    output wire [4:0]         _lsb_rs_dep2,
+    output wire [4:0]         _lsb_rs_dep2
 );
 endmodule

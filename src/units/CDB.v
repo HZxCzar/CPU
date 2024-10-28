@@ -14,6 +14,6 @@ module CDB(
     output wire [31:0]         _cdb_value,
     output wire                _cdb_ls_ready,
     output wire [4:0]          _cdb_ls_rob_id,
-    output wire [31:0]         _cdb_ls_value,
+    output wire [31:0]         _cdb_ls_value
 );
 endmodule

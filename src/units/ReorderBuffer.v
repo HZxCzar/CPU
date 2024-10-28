@@ -16,11 +16,11 @@ module ReorderBuffer(
     output wire                  _register_ready_2,
     output wire [31:0]           _register_value_2,
     //Decoder inputs
-    input reg                  _rob_ready,
-    input reg [4:0]            _rob_type,
+    input wire                  _rob_ready,
+    input wire [4:0]            _rob_type,
     input wire [31:0]          _rob_inst_addr,
-    input reg [4:0]            _rob_rd,
-    input reg [31:0]           _rob_value,
+    input wire [4:0]            _rob_rd,
+    input wire [31:0]           _rob_value,
     //Decoder outputs
     output  wire                 _rob_full,
     output  wire [4:0]           _rob_tail_id,
@@ -53,6 +53,6 @@ module ReorderBuffer(
     output wire                _rf_commit_ready,
     output wire [4:0]          _rf_commit_rob_id,
     output wire [4:0]          _rf_commit_register_id,
-    output wire [31:0]         _rf_commit_value,
+    output wire [31:0]         _rf_commit_value
 );
 endmodule

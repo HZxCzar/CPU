@@ -15,6 +15,6 @@ module LoadStoreBufferALU(
     //LoadStoreBuffer outputs
     output wire          _lsb_ready,
     output wire [4:0]    _lsb_rob_id,
-    output wire [31:0]   _lsb_value,
+    output wire [31:0]   _lsb_value
 );
 endmodule

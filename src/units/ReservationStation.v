@@ -45,6 +45,6 @@ module ReservationStation(
     //ALU outputs
     output wire          _alu_ready,
     output wire [4:0]    _alu_rob_id,
-    output wire [31:0]   _alu_value,
+    output wire [31:0]   _alu_value
 );
 endmodule

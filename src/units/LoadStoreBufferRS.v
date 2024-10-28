@@ -50,6 +50,6 @@ module LoadStoreBufferRS(
     //to LoadStoreBuffer
     output wire                _lsb_rs_ready,
     output wire [4:0]          _lsb_rob_id, 
-    output wire [31:0]         _lsb_st_value,
+    output wire [31:0]         _lsb_st_value
 );
 endmodule

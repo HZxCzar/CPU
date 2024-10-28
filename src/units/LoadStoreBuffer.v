@@ -27,12 +27,12 @@ module LoadStoreBuffer(
     output wire [31:0]        _addr,
     output wire [31:0]        _data_in,
     //from MEM
-    input wire                _lsb_mem_ready,
+    input wire                _mem_lsb_ready,
     input wire [31:0]         _data_out,
 
     //to CDB
     output wire               _lsb_cdb_ready,
     output wire [4:0]         _lsb_cdb_rob_id,
-    output wire [31:0]        _lsb_cdb_value,
+    output wire [31:0]        _lsb_cdb_value
 );
 endmodule
