@@ -1,3 +1,6 @@
+`include "Decoder.v"
+`include "Issue.v"
+
 module InstFetcher(
     input  wire                 clk_in,			// system clock signal
     input  wire                 rst_in,			// reset signal
@@ -10,11 +13,10 @@ module InstFetcher(
     input  wire                 _inst_ready_in,
     input  wire [31:0]          _inst_in,
     output wire                 _InstFetcher_need_inst,
-    output reg [31:0] _pc,
+    output wire [31:0]           _pc,
 
-    // input  wire _br_dc,
+    //ROB Branch
     input  wire _br_rob,
-    // input  wire [31:0] _dc_new_pc,
     input  wire [31:0] _rob_new_pc,
 
     //Inner Decoder
@@ -84,4 +86,77 @@ module InstFetcher(
     output wire                 _lsb_rs_has_dep2,
     output wire [4:0]           _lsb_rs_dep2
 );
+wire[31:0] _next_pc;
+
+Decoder dc(
+    .clk_in(clk_in),
+    .rst_in(rst_in),
+    .rdy_in(rdy_in),
+    ._clear(_clear),
+    ._stall(_stall),
+    ._inst_in(_inst_in),
+    ._inst_ready_in(_inst_ready_in),
+    ._inst_addr(_pc),
+    ._next_pc(_next_pc)
+);
+
+Issue launcher(
+    .clk_in(clk_in),
+    .rst_in(rst_in),
+    .rdy_in(rdy_in),
+    ._clear(_clear),
+    ._inst_in(_inst_in),
+    ._inst_ready_in(_inst_ready_in),
+    ._inst_addr(_pc),
+    ._get_register_id_dependency_1(_get_register_id_dependency_1),
+    ._get_register_id_dependency_2(_get_register_id_dependency_2),
+    ._register_id_has_dependency_1(_register_id_has_dependency_1),
+    ._register_id_dependency_1(_register_id_dependency_1),
+    ._register_value_1(_register_value_1),
+    ._register_id_has_dependency_2(_register_id_has_dependency_2),
+    ._register_id_dependency_2(_register_id_dependency_2),
+    ._register_value_2(_register_value_2),
+    ._get_register_status_1(_get_register_status_1),
+    ._get_register_status_2(_get_register_status_2),
+    ._rob_register_ready_1(_rob_register_ready_1),
+    ._rob_register_value_1(_rob_register_value_1),
+    ._rob_register_ready_2(_rob_register_ready_2),
+    ._rob_register_value_2(_rob_register_value_2),
+    ._rob_full(_rob_full),
+    ._rob_tail_id(_rob_tail_id),
+    ._rob_ready(_rob_ready),
+    ._rob_type(_rob_type),
+    ._rob_inst_addr(_rob_inst_addr),
+    ._rob_rd(_rob_rd),
+    ._rob_value(_rob_value),
+    ._rs_full(_rs_full),
+    ._rs_ready(_rs_ready),
+    ._rs_type(_rs_type),
+    ._rs_rob_id(_rs_rob_id),
+    ._rs_r1(_rs_r1),
+    ._rs_r2(_rs_r2),
+    ._rs_imm(_rs_imm),
+    ._rs_has_dep1(_rs_has_dep1),
+    ._rs_dep1(_rs_dep1),
+    ._rs_has_dep2(_rs_has_dep2),
+    ._rs_dep2(_rs_dep2),
+    ._lsb_full(_lsb_full),
+    ._lsb_ready(_lsb_ready),
+    ._lsb_type(_lsb_type),
+    ._lsb_rob_id(_lsb_rob_id),
+    ._lsb_rs_full(_lsb_rs_full),
+    ._lsb_rs_ready(_lsb_rs_ready),
+    ._lsb_rs_type(_lsb_rs_type),
+    ._lsb_rs_rob_id(_lsb_rs_rob_id),
+    ._lsb_rs_r1(_lsb_rs_r1),
+    ._lsb_rs_sv(_lsb_rs_sv),
+    ._lsb_rs_imm(_lsb_rs_imm),
+    ._lsb_rs_has_dep1(_lsb_rs_has_dep1),
+    ._lsb_rs_dep1(_lsb_rs_dep1),
+    ._lsb_rs_has_dep2(_lsb_rs_has_dep2),
+    ._lsb_rs_dep2(_lsb_rs_dep2)
+);
+
+assign _InstFetcher_need_inst = !_stall;
+assign _pc = _br_rob ? _rob_new_pc : _next_pc;
 endmodule
