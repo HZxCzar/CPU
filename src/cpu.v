@@ -4,6 +4,8 @@
 `include "units/CDB.v"
 `include "units/InstFetcher.v"
 `include "units/Decoder.v"
+`include "units/Issue.v"
+`include "common/fifo/fifo.v"
 `include "units/LoadStoreBuffer.v"
 `include "units/LoadStoreBufferRS.v"
 `include "units/MemControl.v"
@@ -40,7 +42,6 @@ module cpu(
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
 wire _clear;
-reg _stall;
 //CDB
 wire _cdb_ready;
 wire [4:0]          _cdb_rob_id;
@@ -167,9 +168,9 @@ wire [31:0] _lsb_value_LoadStoreBuffer2LoadStoreBufferALU;
 wire _lsb_mem_ready_LoadStoreBuffer2Mem;
 wire _r_nw_in_LoadStoreBuffer2Mem;
 wire [31:0] _addr_LoadStoreBuffer2Mem;
-wire [31:0] _data_in_LoadStoreBuffer2Mem;
+wire [7:0] _data_in_LoadStoreBuffer2Mem;
 wire _lsb_mem_ready_Mem2LoadStoreBuffer;
-wire [31:0] _data_out_Mem2LoadStoreBuffer;
+wire [7:0] _data_out_Mem2LoadStoreBuffer;
 
 MemControl MEM(
   .clk_in(clk_in),
@@ -183,7 +184,8 @@ MemControl MEM(
   ._inst_ready_in_Mem2Fetcher(_inst_ready_in_Mem2Fetcher),
   ._inst_in_Mem2Fetcher(_inst_in_Mem2Fetcher),
   ._pc_Fetcher2Mem(_pc_Fetcher2Mem),
-  ._InstFetcher_need_inst(_stall),
+  ._stall_set(_stall_set_Fetcher2Mem),
+  ._stall_recover(_stall_recover_ROB2Mem),
   ._lsb_mem_ready_LoadStoreBuffer2Mem(_lsb_mem_ready_LoadStoreBuffer2Mem),
   ._r_nw_in_LoadStoreBuffer2Mem(_r_nw_in_LoadStoreBuffer2Mem),
   ._addr_LoadStoreBuffer2Mem(_addr_LoadStoreBuffer2Mem),
@@ -200,7 +202,6 @@ InstFetcher Fetcher(
   ._stall(_stall_set_Fetcher2Mem),
   ._inst_ready_in(_inst_ready_in_Mem2Fetcher),
   ._inst_in(_inst_in_Mem2Fetcher),
-  ._InstFetcher_need_inst(_InstFetcher_need_inst),
   ._pc(_pc_Fetcher2Mem),
   ._br_rob(_br_rob_ROB2Fetcher),
   ._rob_new_pc(_rob_new_pc_ROB2Fetcher),
@@ -450,20 +451,27 @@ RegisterFile RF(
   ._rf_msg_value(_rf_msg_value_RS2RegisterFile)
 );
 
-//每周期stall要flush
+// //每周期stall要flush
 // always @(posedge clk_in)
 //   begin
 //     if (rst_in)
 //       begin
-      
+//         _stall <= 1'b0;
 //       end
 //     else if (!rdy_in)
 //       begin
-      
+//         _stall <= 1'b0;
 //       end
 //     else
 //       begin
-      
+//         if(_stall_set_Fetcher2Mem)
+//         begin
+//           _stall <= 1'b1;
+//         end
+//         else if(_stall_recover_ROB2Mem)
+//         begin
+//           _stall <= 1'b0;
+//         end
 //       end
 //   end
 

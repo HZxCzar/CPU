@@ -1,5 +1,5 @@
-`include "Decoder.v"
-`include "Issue.v"
+// `include "Decoder.v"
+// `include "Issue.v"
 
 module InstFetcher(
     input  wire                 clk_in,			// system clock signal

@@ -1,4 +1,4 @@
-`include "../common/fifo/fifo.v"
+// `include "../common/fifo/fifo.v"
 module Issue(
     input  wire                 clk_in,			// system clock signal
     input  wire                 rst_in,			// reset signal
