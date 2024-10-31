@@ -56,4 +56,5 @@ module ReorderBuffer(
     output wire [4:0]           _rf_commit_register_id,
     output wire [31:0]          _rf_commit_value
 );
+//编号从1开始
 endmodule

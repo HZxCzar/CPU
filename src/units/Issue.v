@@ -48,6 +48,7 @@ module Issue(
     //ReservationStation outputs
     output wire                  _rs_ready,
     output wire [4:0]            _rs_type,
+    output wire [2:0]            _rs_op,
     output wire [4:0]           _rs_rob_id,
     output wire [31:0]          _rs_r1,
     output wire [31:0]          _rs_r2,
@@ -62,14 +63,14 @@ module Issue(
     //LoadStoreBuffer outputs
     output wire                 _lsb_ready,
     output wire [4:0]           _lsb_type,
-    output wire [2:0]           _word_length,
+    output wire [2:0]           _lsb_op,
     output wire [4:0]           _lsb_rob_id,
 
     //LoadStoreBufferRS inputs
     input  wire                 _lsb_rs_full,
     //LoadStoreBufferRS outputs
-    output reg                  _lsb_rs_ready,
-    output reg [4:0]            _lsb_rs_type,
+    output wire                  _lsb_rs_ready,
+    output wire [4:0]            _lsb_rs_type,
     output wire [4:0]           _lsb_rs_rob_id,
     output wire [31:0]          _lsb_rs_r1,
     output wire [31:0]          _lsb_rs_sv,
@@ -99,12 +100,12 @@ always @(posedge clk_in or posedge rst_in) begin
         size<=0;
         end
         else begin
-            if(!_queue_full && _inst_ready_in && _inst_in[6:0]!=7'b0010111)begin: _push
+            if(!_queue_full && _inst_ready_in && _inst_in[6:0]!=7'b0010111)begin
             inst_queue[tail]<=_inst_in;
             addr_queue[tail]<=_inst_addr;
             tail<=tail==31?0:tail+1;
             size<=size+1;
-            end if(_pop_valid)begin: _pop
+            end if(_pop_valid)begin
                 _top_inst<=inst_queue[head];
                 _top_inst_addr<=addr_queue[head];
                 head<=head==31?0:head+1;
@@ -149,6 +150,7 @@ assign _get_register_status_2=_register_id_dependency_2;
 //ReservationStation
 assign _rs_ready=_pop_valid && opcode!=7'b0000011 && opcode!=7'b0100011 && opcode!=7'b0110111;
 assign _rs_type=opcode;
+
 assign _rs_rob_id=_rob_tail_id;
 assign _rs_r1=_register_id_has_dependency_1?_rob_register_value_1:_register_value_1;
 assign _rs_r2=_register_id_has_dependency_2?_rob_register_value_2:_register_value_2;
@@ -162,5 +164,19 @@ assign _rs_dep2=_rs_has_dep2?_register_id_dependency_2:5'b00000;
 assign _lsb_ready=_pop_valid && (opcode==7'b0000011 || opcode==7'b0100011);
 assign _lsb_type=opcode;
 assign _lsb_rob_id=_rob_tail_id;
+assign _lsb_op=op;
+
+//LoadStoreBufferRS
+assign _lsb_rs_ready=_pop_valid && (opcode==7'b0000011 || opcode==7'b0100011);
+assign _lsb_rs_type=opcode;
+assign _lsb_rs_rob_id=_rob_tail_id;
+assign _lsb_rs_r1=_register_id_has_dependency_1?_rob_register_value_1:_register_value_1;
+assign _lsb_rs_sv=_register_id_has_dependency_2?_rob_register_value_2:_register_value_2;
+assign _lsb_rs_imm=(opcode == 7'b0000011) ? immI :
+                   (opcode == 7'b0100011) ? immS : 32'b0; 
+assign _lsb_rs_has_dep1=_register_id_has_dependency_1&&!_rob_register_ready_1;
+assign _lsb_rs_dep1=_lsb_rs_has_dep1?_register_id_dependency_1:5'b0;
+assign _lsb_rs_has_dep2=_register_id_has_dependency_2&&!_rob_register_ready_2;
+assign _lsb_rs_dep2=_lsb_rs_has_dep2?_register_id_dependency_2:5'b0;
 
 endmodule

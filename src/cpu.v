@@ -62,6 +62,7 @@ wire        _InstFetcher_need_inst;
 wire _rs_full_Fetcher2ReservationStation;
 wire _rs_ready_ReservationStation2Fetcher;
 wire [4:0] _rs_type_ReservationStation2Fetcher;
+wire [2:0] _rs_op_ReservationStation2Fetcher;
 wire [4:0] _rs_rob_id_ReservationStation2Fetcher;
 wire [31:0] _rs_r1_ReservationStation2Fetcher;
 wire [31:0] _rs_r2_ReservationStation2Fetcher;
@@ -75,7 +76,7 @@ wire [4:0]         _rs_dep2_ReservationStation2Fetcher;
 wire _lsb_full_Fetcher2LoadStoreBuffer;
 wire                 _lsb_ready_LoadStoreBuffer2Fetcher;
 wire [4:0]           _lsb_type_LoadStoreBuffer2Fetcher;
-wire [2:0]           _word_length_LoadStoreBuffer2Fetcher;
+wire [2:0]           _lsb_op_LoadStoreBuffer2Fetcher;
 wire [4:0]           _lsb_rob_id_LoadStoreBuffer2Fetcher;
 
 //Fetcher & LoadStoreBufferRS
@@ -136,7 +137,9 @@ wire [31:0] _rf_msg_value_RS2RegisterFile;
 wire _alu_full_ReservationStation2ALU;
 wire _alu_ready_ALU2ReservationStation;
 wire [4:0] _alu_rob_id_ALU2ReservationStation;
-wire [31:0] _alu_value_ALU2ReservationStation;
+wire [2:0] _alu_op_ALU2ReservationStation;
+wire [31:0] _alu_v1_ALU2ReservationStation;
+wire [31:0] _alu_v2_ALU2ReservationStation;
 
 //ROB & MEN
 wire _stall_recover_ROB2Mem;
@@ -239,6 +242,7 @@ InstFetcher Fetcher(
   ._rs_full(_rs_full_Fetcher2ReservationStation),
   ._rs_ready(_rs_ready_ReservationStation2Fetcher),
   ._rs_type(_rs_type_ReservationStation2Fetcher),
+  ._rs_op(_rs_op_ReservationStation2Fetcher),
   ._rs_rob_id(_rs_rob_id_ReservationStation2Fetcher),
   ._rs_r1(_rs_r1_ReservationStation2Fetcher),
   ._rs_r2(_rs_r2_ReservationStation2Fetcher),
@@ -254,7 +258,7 @@ InstFetcher Fetcher(
   ._lsb_rs_full(_lsb_rs_full_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_ready(_lsb_rs_ready_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_type(_lsb_rs_type_Fetcher2LoadStoreBufferRS),
-  ._word_length(_word_length_LoadStoreBuffer2Fetcher),
+  ._lsb_op(_lsb_op_LoadStoreBuffer2Fetcher),
   ._lsb_rs_rob_id(_lsb_rs_rob_id_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_r1(_lsb_rs_r1_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_sv(_lsb_rs_sv_Fetcher2LoadStoreBufferRS),
@@ -272,6 +276,7 @@ ReservationStation RS(
   ._clear(_clear),
   ._rs_ready(_rs_ready_ReservationStation2Fetcher),
   ._rs_type(_rs_type_ReservationStation2Fetcher),
+  ._rs_op(_rs_op_ReservationStation2Fetcher),
   ._rs_rob_id(_rs_rob_id_ReservationStation2Fetcher),
   ._rs_r1(_rs_r1_ReservationStation2Fetcher),
   ._rs_r2(_rs_r2_ReservationStation2Fetcher),
@@ -299,7 +304,9 @@ ReservationStation RS(
   ._alu_full(_alu_full_ReservationStation2ALU),
   ._alu_ready(_alu_ready_ALU2ReservationStation),
   ._alu_rob_id(_alu_rob_id_ALU2ReservationStation),
-  ._alu_value(_alu_value_ALU2ReservationStation)
+  ._alu_op(_alu_op_ALU2ReservationStation),
+  ._alu_v1(_alu_v1_ALU2ReservationStation),
+  ._alu_v2(_alu_v2_ALU2ReservationStation)
 );
 
 ALU CommonALU(
@@ -309,7 +316,9 @@ ALU CommonALU(
   ._clear(_clear),
   ._alu_ready(_alu_ready_ALU2ReservationStation),
   ._alu_rob_id(_alu_rob_id_ALU2ReservationStation),
-  ._alu_value(_alu_value_ALU2ReservationStation),
+  ._alu_op(_alu_op_ALU2ReservationStation),
+  ._alu_v1(_alu_v1_ALU2ReservationStation),
+  ._alu_v2(_alu_v2_ALU2ReservationStation),
   ._alu_full(_alu_full_ReservationStation2ALU),
   ._cdb_ready(_cdb_ready),
   ._cdb_rob_id(_cdb_rob_id),
@@ -377,7 +386,7 @@ LoadStoreBuffer LSB(
   ._clear(_clear),
   ._ls_ready(_lsb_ready_LoadStoreBuffer2Fetcher),
   ._ls_type(_lsb_type_LoadStoreBuffer2Fetcher),
-  ._word_length(_word_length_LoadStoreBuffer2Fetcher),
+  ._ls_op(_lsb_op_LoadStoreBuffer2Fetcher),
   ._ls_rob_id(_lsb_rob_id_LoadStoreBuffer2Fetcher),
   ._ls_full(_lsb_full_Fetcher2LoadStoreBuffer),
   ._lsb_rs_ready(_lsb_rs_ready_LoadStoreBuffer2LoadStoreBufferRS),

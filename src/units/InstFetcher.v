@@ -58,6 +58,7 @@ module InstFetcher(
     //ReservationStation outputs
     output wire                 _rs_ready,
     output wire [4:0]           _rs_type,
+    output wire [2:0]           _rs_op,
     output wire [4:0]           _rs_rob_id,
     output wire [31:0]          _rs_r1,
     output wire [31:0]          _rs_r2,
@@ -72,7 +73,7 @@ module InstFetcher(
     //LoadStoreBuffer outputs
     output wire                 _lsb_ready,
     output wire [4:0]           _lsb_type,
-    output wire [2:0]           _word_length,
+    output wire [2:0]           _lsb_op,
     output wire [4:0]           _lsb_rob_id,
 
     //LoadStoreBufferRS inputs
@@ -136,6 +137,7 @@ Issue launcher(
     ._rs_full(_rs_full),
     ._rs_ready(_rs_ready),
     ._rs_type(_rs_type),
+    ._rs_op(_rs_op),
     ._rs_rob_id(_rs_rob_id),
     ._rs_r1(_rs_r1),
     ._rs_r2(_rs_r2),
@@ -147,7 +149,7 @@ Issue launcher(
     ._lsb_full(_lsb_full),
     ._lsb_ready(_lsb_ready),
     ._lsb_type(_lsb_type),
-    ._word_length(_word_length),
+    ._lsb_op(_lsb_op),
     ._lsb_rob_id(_lsb_rob_id),
     ._lsb_rs_full(_lsb_rs_full),
     ._lsb_rs_ready(_lsb_rs_ready),

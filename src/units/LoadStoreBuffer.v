@@ -8,7 +8,7 @@ module LoadStoreBuffer(
     //from InstFetcher
     input wire                 _ls_ready,
     input wire [4:0]           _ls_type,
-    input wire [2:0]           _word_length,
+    input wire [2:0]           _ls_op,
     input wire [4:0]           _ls_rob_id,
     output wire                _ls_full,
 
