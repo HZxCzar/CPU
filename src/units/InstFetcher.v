@@ -72,6 +72,7 @@ module InstFetcher(
     //LoadStoreBuffer outputs
     output wire                 _lsb_ready,
     output wire [4:0]           _lsb_type,
+    output wire [2:0]           _word_length,
     output wire [4:0]           _lsb_rob_id,
 
     //LoadStoreBufferRS inputs
@@ -146,6 +147,7 @@ Issue launcher(
     ._lsb_full(_lsb_full),
     ._lsb_ready(_lsb_ready),
     ._lsb_type(_lsb_type),
+    ._word_length(_word_length),
     ._lsb_rob_id(_lsb_rob_id),
     ._lsb_rs_full(_lsb_rs_full),
     ._lsb_rs_ready(_lsb_rs_ready),

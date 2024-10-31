@@ -73,8 +73,9 @@ wire [4:0]         _rs_dep2_ReservationStation2Fetcher;
 
 //Fetcher & LoadStoreBuffer
 wire _lsb_full_Fetcher2LoadStoreBuffer;
-output wire                 _lsb_ready_LoadStoreBuffer2Fetcher;
+wire                 _lsb_ready_LoadStoreBuffer2Fetcher;
 wire [4:0]           _lsb_type_LoadStoreBuffer2Fetcher;
+wire [2:0]           _word_length_LoadStoreBuffer2Fetcher;
 wire [4:0]           _lsb_rob_id_LoadStoreBuffer2Fetcher;
 
 //Fetcher & LoadStoreBufferRS
@@ -253,6 +254,7 @@ InstFetcher Fetcher(
   ._lsb_rs_full(_lsb_rs_full_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_ready(_lsb_rs_ready_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_type(_lsb_rs_type_Fetcher2LoadStoreBufferRS),
+  ._word_length(_word_length_LoadStoreBuffer2Fetcher),
   ._lsb_rs_rob_id(_lsb_rs_rob_id_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_r1(_lsb_rs_r1_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_sv(_lsb_rs_sv_Fetcher2LoadStoreBufferRS),
@@ -375,6 +377,7 @@ LoadStoreBuffer LSB(
   ._clear(_clear),
   ._ls_ready(_lsb_ready_LoadStoreBuffer2Fetcher),
   ._ls_type(_lsb_type_LoadStoreBuffer2Fetcher),
+  ._word_length(_word_length_LoadStoreBuffer2Fetcher),
   ._ls_rob_id(_lsb_rob_id_LoadStoreBuffer2Fetcher),
   ._ls_full(_lsb_full_Fetcher2LoadStoreBuffer),
   ._lsb_rs_ready(_lsb_rs_ready_LoadStoreBuffer2LoadStoreBufferRS),
