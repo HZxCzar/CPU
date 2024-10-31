@@ -21,6 +21,7 @@ module ReorderBuffer(
     input wire [31:0]           _rob_inst_addr,
     input wire [4:0]            _rob_rd,
     input wire [31:0]           _rob_value,
+    input wire [31:0]           _rob_jump_imm,
     //Decoder outputs
     output  wire                _rob_full,
     output  wire [4:0]          _rob_tail_id,

@@ -50,12 +50,13 @@ wire                _cdb_ls_ready;
 wire [4:0]          _cdb_ls_rob_id;
 wire [31:0]         _cdb_ls_value;
 
-
+wire _mem_busy;
 //Mem & Fetcher
 wire _inst_ready_in_Mem2Fetcher;
 wire [31:0] _inst_in_Mem2Fetcher;
 wire _stall_set_Fetcher2Mem;
 wire [31:0] _pc_Fetcher2Mem;
+wire        _InstFetcher_need_inst;
 
 //Fetcher & ReservationStation
 wire _rs_full_Fetcher2ReservationStation;
@@ -103,6 +104,7 @@ wire [4:0] _rob_type_ROB2Fetcher;
 wire [31:0] _rob_inst_addr_ROB2Fetcher;
 wire [4:0] _rob_rd_ROB2Fetcher;
 wire [31:0] _rob_value_ROB2Fetcher;
+wire [31:0] _rob_jump_imm_ROB2Fetcher;
 wire _br_rob_ROB2Fetcher;
 wire [31:0] _rob_new_pc_ROB2Fetcher;
 
@@ -165,12 +167,13 @@ wire [4:0] _lsb_rob_id_LoadStoreBuffer2LoadStoreBufferALU;
 wire [31:0] _lsb_value_LoadStoreBuffer2LoadStoreBufferALU;
 
 //LoadStoreBuffer & Mem
+wire [1:0] _work_type;
 wire _lsb_mem_ready_LoadStoreBuffer2Mem;
 wire _r_nw_in_LoadStoreBuffer2Mem;
 wire [31:0] _addr_LoadStoreBuffer2Mem;
-wire [7:0] _data_in_LoadStoreBuffer2Mem;
+wire [31:0] _data_in_LoadStoreBuffer2Mem;
 wire _lsb_mem_ready_Mem2LoadStoreBuffer;
-wire [7:0] _data_out_Mem2LoadStoreBuffer;
+wire [31:0] _data_out_Mem2LoadStoreBuffer;
 
 MemControl MEM(
   .clk_in(clk_in),
@@ -181,11 +184,14 @@ MemControl MEM(
   .mem_a(mem_a),
   .mem_wr(mem_wr),
   .io_buffer_full(io_buffer_full),
+  ._mem_busy(_mem_busy),
   ._inst_ready_in_Mem2Fetcher(_inst_ready_in_Mem2Fetcher),
   ._inst_in_Mem2Fetcher(_inst_in_Mem2Fetcher),
   ._pc_Fetcher2Mem(_pc_Fetcher2Mem),
   ._stall_set(_stall_set_Fetcher2Mem),
+  ._InstFetcher_need_inst(_InstFetcher_need_inst),
   ._stall_recover(_stall_recover_ROB2Mem),
+  ._work_type(_work_type),
   ._lsb_mem_ready_LoadStoreBuffer2Mem(_lsb_mem_ready_LoadStoreBuffer2Mem),
   ._r_nw_in_LoadStoreBuffer2Mem(_r_nw_in_LoadStoreBuffer2Mem),
   ._addr_LoadStoreBuffer2Mem(_addr_LoadStoreBuffer2Mem),
@@ -200,8 +206,10 @@ InstFetcher Fetcher(
   .rdy_in(rdy_in),
   ._clear(_clear),
   ._stall(_stall_set_Fetcher2Mem),
+  ._mem_busy(_mem_busy),
   ._inst_ready_in(_inst_ready_in_Mem2Fetcher),
   ._inst_in(_inst_in_Mem2Fetcher),
+  ._InstFetcher_need_inst(_InstFetcher_need_inst),
   ._pc(_pc_Fetcher2Mem),
   ._br_rob(_br_rob_ROB2Fetcher),
   ._rob_new_pc(_rob_new_pc_ROB2Fetcher),
@@ -226,6 +234,7 @@ InstFetcher Fetcher(
   ._rob_inst_addr(_rob_inst_addr_ROB2Fetcher),
   ._rob_rd(_rob_rd_ROB2Fetcher),
   ._rob_value(_rob_value_ROB2Fetcher),
+  ._rob_jump_imm(_rob_jump_imm_ROB2Fetcher),
   ._rs_full(_rs_full_Fetcher2ReservationStation),
   ._rs_ready(_rs_ready_ReservationStation2Fetcher),
   ._rs_type(_rs_type_ReservationStation2Fetcher),
@@ -374,10 +383,12 @@ LoadStoreBuffer LSB(
   ._lsb_alu_ready(_lsb_ready_LoadStoreBuffer2LoadStoreBufferALU),
   ._alu_rob_id(_lsb_rob_id_LoadStoreBuffer2LoadStoreBufferALU),
   ._alu_value(_lsb_value_LoadStoreBuffer2LoadStoreBufferALU),
+  ._work_type(_work_type),
   ._lsb_mem_ready(_lsb_mem_ready_LoadStoreBuffer2Mem),
   ._r_nw_in(_r_nw_in_LoadStoreBuffer2Mem),
   ._addr(_addr_LoadStoreBuffer2Mem),
   ._data_in(_data_in_LoadStoreBuffer2Mem),
+  ._mem_busy(_mem_busy),
   ._mem_lsb_ready(_lsb_mem_ready_Mem2LoadStoreBuffer),
   ._data_out(_data_out_Mem2LoadStoreBuffer),
   ._lsb_cdb_ready(_cdb_ls_ready),
@@ -402,6 +413,7 @@ ReorderBuffer ROB(
   ._rob_inst_addr(_rob_inst_addr_ROB2Fetcher),
   ._rob_rd(_rob_rd_ROB2Fetcher),
   ._rob_value(_rob_value_ROB2Fetcher),
+  ._rob_jump_imm(_rob_jump_imm_ROB2Fetcher),
   ._rob_full(_rob_full_Fetcher2ROB),
   ._rob_tail_id(_rob_tail_id_Fetcher2ROB),
   ._br_rob(_br_rob_ROB2Fetcher),

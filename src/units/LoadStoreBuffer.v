@@ -22,13 +22,15 @@ module LoadStoreBuffer(
     input wire [31:0]          _alu_value,
 
     //to MEM
+    output wire[1:0]           _work_type,
     output wire                _lsb_mem_ready,
     output wire                _r_nw_in,
     output wire [31:0]         _addr,
-    output wire [7:0]         _data_in,
+    output wire [31:0]         _data_in,
     //from MEM
+    input wire                 _mem_busy,
     input wire                 _mem_lsb_ready,
-    input wire [7:0]          _data_out,
+    input wire [31:0]          _data_out,
 
     //to CDB
     output wire                _lsb_cdb_ready,

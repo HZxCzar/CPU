@@ -10,9 +10,10 @@ module InstFetcher(
     output  wire                _stall,
 
     //Mem
+    input  wire                  _mem_busy,
     input  wire                  _inst_ready_in,
     input  wire [31:0]           _inst_in,
-    // output wire               _InstFetcher_need_inst,
+    output wire                  _InstFetcher_need_inst,
     output wire [31:0]           _pc,
 
     //ROB Branch
@@ -50,6 +51,7 @@ module InstFetcher(
     output wire [31:0]          _rob_inst_addr,
     output wire [4:0]           _rob_rd,
     output wire [31:0]          _rob_value,
+    output wire [31:0]          _rob_jump_imm,
 
     //ReservationStation inputs
     input  wire                 _rs_full,
@@ -87,7 +89,7 @@ module InstFetcher(
     output wire [4:0]           _lsb_rs_dep2
 );
 wire[31:0] _next_pc;
-
+wire _queue_not_full;
 Decoder dc(
     .clk_in(clk_in),
     .rst_in(rst_in),
@@ -108,6 +110,7 @@ Issue launcher(
     ._inst_in(_inst_in),
     ._inst_ready_in(_inst_ready_in),
     ._inst_addr(_pc),
+    ._InstFetcher_need_inst(_queue_not_full),
     ._get_register_id_dependency_1(_get_register_id_dependency_1),
     ._get_register_id_dependency_2(_get_register_id_dependency_2),
     ._register_id_has_dependency_1(_register_id_has_dependency_1),
@@ -157,6 +160,6 @@ Issue launcher(
     ._lsb_rs_dep2(_lsb_rs_dep2)
 );
 
-assign _InstFetcher_need_inst = !_stall;
+assign _InstFetcher_need_inst = !_stall && !_queue_not_full && !_mem_busy;
 assign _pc = _br_rob ? _rob_new_pc : _next_pc;
 endmodule
