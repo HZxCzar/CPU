@@ -62,7 +62,7 @@ wire        _InstFetcher_need_inst;
 wire _rs_full_Fetcher2ReservationStation;
 wire _rs_ready_ReservationStation2Fetcher;
 wire [4:0] _rs_type_ReservationStation2Fetcher;
-wire [2:0] _rs_op_ReservationStation2Fetcher;
+wire [3:0] _rs_op_ReservationStation2Fetcher;
 wire [4:0] _rs_rob_id_ReservationStation2Fetcher;
 wire [31:0] _rs_r1_ReservationStation2Fetcher;
 wire [31:0] _rs_r2_ReservationStation2Fetcher;
@@ -137,6 +137,7 @@ wire [31:0] _rf_msg_value_RS2RegisterFile;
 wire _alu_full_ReservationStation2ALU;
 wire _alu_ready_ALU2ReservationStation;
 wire [4:0] _alu_rob_id_ALU2ReservationStation;
+wire [4:0] _alu_type_ALU2ReservationStation;
 wire [2:0] _alu_op_ALU2ReservationStation;
 wire [31:0] _alu_v1_ALU2ReservationStation;
 wire [31:0] _alu_v2_ALU2ReservationStation;
@@ -304,6 +305,7 @@ ReservationStation RS(
   ._alu_full(_alu_full_ReservationStation2ALU),
   ._alu_ready(_alu_ready_ALU2ReservationStation),
   ._alu_rob_id(_alu_rob_id_ALU2ReservationStation),
+  ._alu_type(_alu_type_ALU2ReservationStation),
   ._alu_op(_alu_op_ALU2ReservationStation),
   ._alu_v1(_alu_v1_ALU2ReservationStation),
   ._alu_v2(_alu_v2_ALU2ReservationStation)
@@ -316,6 +318,7 @@ ALU CommonALU(
   ._clear(_clear),
   ._alu_ready(_alu_ready_ALU2ReservationStation),
   ._alu_rob_id(_alu_rob_id_ALU2ReservationStation),
+  ._alu_type(_alu_type_ALU2ReservationStation),
   ._alu_op(_alu_op_ALU2ReservationStation),
   ._alu_v1(_alu_v1_ALU2ReservationStation),
   ._alu_v2(_alu_v2_ALU2ReservationStation),

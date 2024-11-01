@@ -67,9 +67,7 @@ always @(posedge clk_in) begin
         end
     end else if(work_on_mode!=2'b00) begin
         if(work_on_mode==2'b01) begin
-            if (waiter==1) begin
-                waiter<=0;
-            end else if(counter!=2'b00) begin
+            if(counter!=2'b00) begin
                 case(counter)
                 2'b11: mem_dout<=_input_data[15:8];
                 2'b10: mem_dout<=_input_data[23:16];
@@ -77,13 +75,13 @@ always @(posedge clk_in) begin
                 endcase
                 counter <= counter - 1;
                 mem_a<=mem_a+1;
-                waiter<=1;
             end else begin
                 _data_out_Mem2LoadStoreBuffer <= {32{1'b0}};
                 _lsb_mem_ready_Mem2LoadStoreBuffer <= 1'b1;
                 work_on_mode <= 2'b00;
                 _mem_busy <= 1'b0;
                 _input_data<=0;
+                waiter<=1;
             end
         end else if(work_on_mode==2'b10) begin
             if(counter!=2'b00) begin
@@ -101,7 +99,7 @@ always @(posedge clk_in) begin
                 _mem_busy <= 1'b0;
             end
         end
-    end else if(_lsb_mem_ready_LoadStoreBuffer2Mem) begin
+    end else if(_lsb_mem_ready_LoadStoreBuffer2Mem && (_r_nw_in_LoadStoreBuffer2Mem || waiter==0)) begin
         if(_r_nw_in_LoadStoreBuffer2Mem) begin
             work_on_mode <= 2'b01;
             _mem_busy <= 1'b1;

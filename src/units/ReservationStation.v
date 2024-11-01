@@ -8,7 +8,7 @@ module ReservationStation(
     // InstFetcher inputs
     input wire                  _rs_ready,
     input wire [4:0]            _rs_type,
-    input wire [2:0]            _rs_op,
+    input wire [3:0]            _rs_op,
     input wire [4:0]            _rs_rob_id,
     input wire [31:0]           _rs_r1,
     input wire [31:0]           _rs_r2,
@@ -46,13 +46,14 @@ module ReservationStation(
     //ALU outputs
     output wire                 _alu_ready,
     output wire [4:0]           _alu_rob_id,
-    output wire [2:0]           _alu_op,
+    output wire [4:0]           _alu_type,
+    output wire [3:0]           _alu_op,
     output wire [31:0]          _alu_v1,
     output wire [31:0]          _alu_v2
 );
 reg busy[0:31];
 reg[31:0] rss_type[0:31];
-reg[2:0] rss_op[0:31];
+reg[3:0] rss_op[0:31];
 reg[4:0] rss_rob_id[0:31];
 reg[31:0] rss_r1[0:31];
 reg[31:0] rss_r2[0:31];
@@ -199,6 +200,8 @@ assign _pop_pos = (_ready[0] ? 5'd0 :
 assign _pop_valid=_alu_full && (_ready[0] || _ready[1] || _ready[2] || _ready[3] || _ready[4] || _ready[5] || _ready[6] || _ready[7] || _ready[8] || _ready[9] || _ready[10] || _ready[11] || _ready[12] || _ready[13] || _ready[14] || _ready[15] || _ready[16] || _ready[17] || _ready[18] || _ready[19] || _ready[20] || _ready[21] || _ready[22] || _ready[23] || _ready[24] || _ready[25] || _ready[26] || _ready[27] || _ready[28] || _ready[29] || _ready[30] || _ready[31]);
 assign _alu_ready=_pop_valid;
 assign _alu_rob_id=rss_rob_id[_pop_pos];
+assign _alu_type=rss_type[_pop_pos];
+assign _alu_op=rss_op[_pop_pos];
 assign _alu_v1=rss_r1[_pop_pos];
-assign _alu_v2=rss_r2[_pop_pos];
+assign _alu_v2=(opcode==7'b0110011||opcode==7'b1100011)?rss_r2[_pop_pos]:rss_imm[_pop_pos];
 endmodule

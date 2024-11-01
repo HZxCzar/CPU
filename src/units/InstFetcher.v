@@ -58,7 +58,7 @@ module InstFetcher(
     //ReservationStation outputs
     output wire                 _rs_ready,
     output wire [4:0]           _rs_type,
-    output wire [2:0]           _rs_op,
+    output wire [3:0]           _rs_op,
     output wire [4:0]           _rs_rob_id,
     output wire [31:0]          _rs_r1,
     output wire [31:0]          _rs_r2,
@@ -92,6 +92,7 @@ module InstFetcher(
 );
 wire[31:0] _next_pc;
 wire _queue_not_full;
+reg [31:0] _jalr_rd;
 Decoder dc(
     .clk_in(clk_in),
     .rst_in(rst_in),
@@ -112,6 +113,7 @@ Issue launcher(
     ._inst_in(_inst_in),
     ._inst_ready_in(_inst_ready_in),
     ._inst_addr(_pc),
+    ._jalr_rd(_jalr_rd),
     ._InstFetcher_need_inst(_queue_not_full),
     ._get_register_id_dependency_1(_get_register_id_dependency_1),
     ._get_register_id_dependency_2(_get_register_id_dependency_2),
@@ -164,6 +166,17 @@ Issue launcher(
     ._lsb_rs_dep2(_lsb_rs_dep2)
 );
 
+always @(posedge clk_in) begin
+    if(rst_in | !rdy_in) begin
+        _jalr_rd <= 0;
+    end else begin
+        if(_stall) begin
+            _jalr_rd <= _next_pc;
+        end 
+    end
+end
+
 assign _InstFetcher_need_inst = !_stall && !_queue_not_full && !_mem_busy;
 assign _pc = _br_rob ? _rob_new_pc : _next_pc;
+//adder若stall则计算_jalr_rd
 endmodule
