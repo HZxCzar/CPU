@@ -42,6 +42,7 @@ module cpu(
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
 wire _clear;
+
 //CDB
 wire _cdb_ready;
 wire [4:0]          _cdb_rob_id;
@@ -50,39 +51,40 @@ wire                _cdb_ls_ready;
 wire [4:0]          _cdb_ls_rob_id;
 wire [31:0]         _cdb_ls_value;
 
-wire _mem_busy;
+
 //Mem & Fetcher
 wire _inst_ready_in_Mem2Fetcher;
 wire [31:0] _inst_in_Mem2Fetcher;
 wire _stall_set_Fetcher2Mem;
 wire [31:0] _pc_Fetcher2Mem;
 wire        _InstFetcher_need_inst;
+wire _mem_busy;
 
 //Fetcher & ReservationStation
 wire _rs_full_Fetcher2ReservationStation;
 wire _rs_ready_ReservationStation2Fetcher;
-wire [4:0] _rs_type_ReservationStation2Fetcher;
+wire [6:0] _rs_type_ReservationStation2Fetcher;
 wire [3:0] _rs_op_ReservationStation2Fetcher;
 wire [4:0] _rs_rob_id_ReservationStation2Fetcher;
 wire [31:0] _rs_r1_ReservationStation2Fetcher;
 wire [31:0] _rs_r2_ReservationStation2Fetcher;
 wire [31:0] _rs_imm_ReservationStation2Fetcher;
-wire _rs_has_dep1_ReservationStation2Fetcher;
+wire               _rs_has_dep1_ReservationStation2Fetcher;
 wire [4:0]         _rs_dep1_ReservationStation2Fetcher;
 wire               _rs_has_dep2_ReservationStation2Fetcher;
 wire [4:0]         _rs_dep2_ReservationStation2Fetcher;
 
 //Fetcher & LoadStoreBuffer
-wire _lsb_full_Fetcher2LoadStoreBuffer;
+wire                 _lsb_full_Fetcher2LoadStoreBuffer;
 wire                 _lsb_ready_LoadStoreBuffer2Fetcher;
-wire [4:0]           _lsb_type_LoadStoreBuffer2Fetcher;
+wire [6:0]           _lsb_type_LoadStoreBuffer2Fetcher;
 wire [2:0]           _lsb_op_LoadStoreBuffer2Fetcher;
 wire [4:0]           _lsb_rob_id_LoadStoreBuffer2Fetcher;
 
 //Fetcher & LoadStoreBufferRS
 wire                 _lsb_rs_full_Fetcher2LoadStoreBufferRS;
 wire                 _lsb_rs_ready_Fetcher2LoadStoreBufferRS;
-wire [4:0]           _lsb_rs_type_Fetcher2LoadStoreBufferRS;
+wire [6:0]           _lsb_rs_type_Fetcher2LoadStoreBufferRS;
 wire [4:0]           _lsb_rs_rob_id_Fetcher2LoadStoreBufferRS;
 wire [31:0]          _lsb_rs_r1_Fetcher2LoadStoreBufferRS;
 wire [31:0]          _lsb_rs_sv_Fetcher2LoadStoreBufferRS;
@@ -95,30 +97,23 @@ wire [4:0]           _lsb_rs_dep2_Fetcher2LoadStoreBufferRS;
 //Fetcher & ROB
 wire [4:0] _get_register_status_1_Fetcher2ROB;
 wire [4:0] _get_register_status_2_Fetcher2ROB;
-wire _register_ready_1_Fetcher2ROB;
+wire [4:0]_rob_register_dep_1_Fetcher2ROB;
 wire [31:0] _register_value_1_Fetcher2ROB;
-wire _register_ready_2_Fetcher2ROB;
+wire [4:0]_rob_register_dep_2_Fetcher2ROB;
 wire [31:0] _register_value_2_Fetcher2ROB;
+
 wire _rob_full_Fetcher2ROB;
 wire [4:0] _rob_tail_id_Fetcher2ROB;
 wire _rob_ready_ROB2Fetcher;
-wire [4:0] _rob_type_ROB2Fetcher;
+wire [6:0] _rob_type_ROB2Fetcher;
 wire [31:0] _rob_inst_addr_ROB2Fetcher;
 wire [4:0] _rob_rd_ROB2Fetcher;
 wire [31:0] _rob_value_ROB2Fetcher;
 wire [31:0] _rob_jump_imm_ROB2Fetcher;
+
 wire _br_rob_ROB2Fetcher;
 wire [31:0] _rob_new_pc_ROB2Fetcher;
-
-//Fetcher & RegisterFile
-wire [4:0] _get_register_id_dependency_1_Fetcher2RegisterFile;
-wire [4:0] _get_register_id_dependency_2_Fetcher2RegisterFile;
-wire _register_id_has_dependency_1_Fetcher2RegisterFile;
-wire [4:0] _register_id_dependency_1_Fetcher2RegisterFile;
-wire [31:0] _register_value_1_Fetcher2RegisterFile;
-wire _register_id_has_dependency_2_Fetcher2RegisterFile;
-wire [4:0] _register_id_dependency_2_Fetcher2RegisterFile;
-wire [31:0] _register_value_2_Fetcher2RegisterFile;
+wire [31:0] _rob_imm_ROB2Fetcher;
 
 //ReservationStation & ROB
 wire _rob_msg_ready_1_RS2ROB;
@@ -137,8 +132,8 @@ wire [31:0] _rf_msg_value_RS2RegisterFile;
 wire _alu_full_ReservationStation2ALU;
 wire _alu_ready_ALU2ReservationStation;
 wire [4:0] _alu_rob_id_ALU2ReservationStation;
-wire [4:0] _alu_type_ALU2ReservationStation;
-wire [2:0] _alu_op_ALU2ReservationStation;
+wire [6:0] _alu_type_ALU2ReservationStation;
+wire [3:0] _alu_op_ALU2ReservationStation;
 wire [31:0] _alu_v1_ALU2ReservationStation;
 wire [31:0] _alu_v2_ALU2ReservationStation;
 
@@ -154,22 +149,33 @@ wire [4:0] _rf_commit_rob_id_ROB2RegisterFile;
 wire [4:0] _rf_commit_register_id_ROB2RegisterFile;
 wire [31:0] _rf_commit_value_ROB2RegisterFile;
 //launch后下一个周期改dependency
+//transmit
+wire [4:0] _ask_rd_1_ROB2RegisterFile;
+wire [4:0] _ask_rd_2_ROB2RegisterFile;
+wire [4:0] _dep_rd_1_ROB2RegisterFile;
+wire [4:0] _dep_rd_2_ROB2RegisterFile;
+wire [31:0] _dep_value_1_ROB2RegisterFile;
+wire [31:0] _dep_value_2_ROB2RegisterFile;
 
-//LoadStoreBufferRS & ALU
-wire _alu_full_LoadStoreBufferRS2ALU;
-wire _alu_ready_LoadStoreBufferRS2ALU;
-wire [4:0] _alu_rob_id_LoadStoreBufferRS2ALU;
-wire [31:0] _alu_value_LoadStoreBufferRS2ALU;
+//Store Control
+wire _store_ready_ROB2LSB;
 
 //LoadStoreBufferRS & LoadStoreBuffer
 wire _lsb_rs_ready_LoadStoreBuffer2LoadStoreBufferRS;
 wire [4:0] _lsb_rob_id_LoadStoreBuffer2LoadStoreBufferRS;
 wire [31:0] _lsb_st_value_LoadStoreBuffer2LoadStoreBufferRS;
+wire [31:0] _lsb_ptr_value_LoadStoreBuffer2LoadStoreBufferRS;
 
-//LoadStoreBufferALU & LoadStoreBuffer
-wire _lsb_ready_LoadStoreBuffer2LoadStoreBufferALU;
-wire [4:0] _lsb_rob_id_LoadStoreBuffer2LoadStoreBufferALU;
-wire [31:0] _lsb_value_LoadStoreBuffer2LoadStoreBufferALU;
+//LoadStoreBufferRS & ROB
+wire _rob_msg_ready_1_LSRS2ROB;
+wire [4:0] _rob_msg_rob_id_1_LSRS2ROB;
+wire [31:0] _rob_msg_value_1_LSRS2ROB;
+wire _rob_msg_ready_2_LSRS2ROB;
+wire [4:0] _rob_msg_rob_id_2_LSRS2ROB;
+wire [31:0] _rob_msg_value_2_LSRS2ROB;
+
+// LoadStoreBufferRS & RegisterFile
+// use the same as ReservationStation & RegisterFile
 
 //LoadStoreBuffer & Mem
 wire [1:0] _work_type;
@@ -190,6 +196,7 @@ MemControl MEM(
   .mem_wr(mem_wr),
   .io_buffer_full(io_buffer_full),
   ._mem_busy(_mem_busy),
+  ._clear(_clear),
   ._inst_ready_in_Mem2Fetcher(_inst_ready_in_Mem2Fetcher),
   ._inst_in_Mem2Fetcher(_inst_in_Mem2Fetcher),
   ._pc_Fetcher2Mem(_pc_Fetcher2Mem),
@@ -215,22 +222,15 @@ InstFetcher Fetcher(
   ._inst_ready_in(_inst_ready_in_Mem2Fetcher),
   ._inst_in(_inst_in_Mem2Fetcher),
   ._InstFetcher_need_inst(_InstFetcher_need_inst),
-  ._pc(_pc_Fetcher2Mem),
+  ._next_pc(_pc_Fetcher2Mem),
   ._br_rob(_br_rob_ROB2Fetcher),
   ._rob_new_pc(_rob_new_pc_ROB2Fetcher),
-  ._get_register_id_dependency_1(_get_register_id_dependency_1_Fetcher2RegisterFile),
-  ._get_register_id_dependency_2(_get_register_id_dependency_2_Fetcher2RegisterFile),
-  ._register_id_has_dependency_1(_register_id_has_dependency_1_Fetcher2RegisterFile),
-  ._register_id_dependency_1(_register_id_dependency_1_Fetcher2RegisterFile),
-  ._register_value_1(_register_value_1_Fetcher2RegisterFile),
-  ._register_id_has_dependency_2(_register_id_has_dependency_2_Fetcher2RegisterFile),
-  ._register_id_dependency_2(_register_id_dependency_2_Fetcher2RegisterFile),
-  ._register_value_2(_register_value_2_Fetcher2RegisterFile),
+  ._rob_imm(_rob_imm_ROB2Fetcher),
   ._get_register_status_1(_get_register_status_1_Fetcher2ROB),
   ._get_register_status_2(_get_register_status_2_Fetcher2ROB),
-  ._rob_register_ready_1(_register_ready_1_Fetcher2ROB),
+  ._rob_register_dep_1(_rob_register_dep_1_Fetcher2ROB),
   ._rob_register_value_1(_register_value_1_Fetcher2ROB),
-  ._rob_register_ready_2(_register_ready_2_Fetcher2ROB),
+  ._rob_register_dep_2(_rob_register_dep_2_Fetcher2ROB),
   ._rob_register_value_2(_register_value_2_Fetcher2ROB),
   ._rob_full(_rob_full_Fetcher2ROB),
   ._rob_tail_id(_rob_tail_id_Fetcher2ROB),
@@ -255,11 +255,11 @@ InstFetcher Fetcher(
   ._lsb_full(_lsb_full_Fetcher2LoadStoreBuffer),
   ._lsb_ready(_lsb_ready_LoadStoreBuffer2Fetcher),
   ._lsb_type(_lsb_type_LoadStoreBuffer2Fetcher),
+  ._lsb_op(_lsb_op_LoadStoreBuffer2Fetcher),
   ._lsb_rob_id(_lsb_rob_id_LoadStoreBuffer2Fetcher),
   ._lsb_rs_full(_lsb_rs_full_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_ready(_lsb_rs_ready_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_type(_lsb_rs_type_Fetcher2LoadStoreBufferRS),
-  ._lsb_op(_lsb_op_LoadStoreBuffer2Fetcher),
   ._lsb_rs_rob_id(_lsb_rs_rob_id_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_r1(_lsb_rs_r1_Fetcher2LoadStoreBufferRS),
   ._lsb_rs_sv(_lsb_rs_sv_Fetcher2LoadStoreBufferRS),
@@ -350,36 +350,19 @@ LoadStoreBufferRS LSRS(
   ._cdb_ls_ready(_cdb_ls_ready),
   ._cdb_ls_rob_id(_cdb_ls_rob_id),
   ._cdb_ls_value(_cdb_ls_value),
-  ._rob_msg_ready_1(_rob_msg_ready_1_RS2ROB),
-  ._rob_msg_rob_id_1(_rob_msg_rob_id_1_RS2ROB),
-  ._rob_msg_value_1(_rob_msg_value_1_RS2ROB),
-  ._rob_msg_ready_2(_rob_msg_ready_2_RS2ROB),
-  ._rob_msg_rob_id_2(_rob_msg_rob_id_2_RS2ROB),
-  ._rob_msg_value_2(_rob_msg_value_2_RS2ROB),
+  ._rob_msg_ready_1(_rob_msg_ready_1_LSRS2ROB),
+  ._rob_msg_rob_id_1(_rob_msg_rob_id_1_LSRS2ROB),
+  ._rob_msg_value_1(_rob_msg_value_1_LSRS2ROB),
+  ._rob_msg_ready_2(_rob_msg_ready_2_LSRS2ROB),
+  ._rob_msg_rob_id_2(_rob_msg_rob_id_2_LSRS2ROB),
+  ._rob_msg_value_2(_rob_msg_value_2_LSRS2ROB),
   ._rf_msg_ready(_rf_msg_ready_RS2RegisterFile),
   ._rf_msg_rob_id(_rf_msg_rob_id_RS2RegisterFile),
   ._rf_msg_value(_rf_msg_value_RS2RegisterFile),
-  ._alu_full(_alu_full_LoadStoreBufferRS2ALU),
-  ._alu_ready(_alu_ready_LoadStoreBufferRS2ALU),
-  ._alu_rob_id(_alu_rob_id_LoadStoreBufferRS2ALU),
-  ._alu_value(_alu_value_LoadStoreBufferRS2ALU),
   ._lsb_rs_ready(_lsb_rs_ready_LoadStoreBuffer2LoadStoreBufferRS),
   ._lsb_rob_id(_lsb_rob_id_LoadStoreBuffer2LoadStoreBufferRS),
-  ._lsb_st_value(_lsb_st_value_LoadStoreBuffer2LoadStoreBufferRS)
-);
-
-LoadStoreBufferALU LSALU(
-  .clk_in(clk_in),
-  .rst_in(rst_in),
-  .rdy_in(rdy_in),
-  ._clear(_clear),
-  ._alu_ready(_alu_ready_LoadStoreBufferRS2ALU),
-  ._alu_rob_id(_alu_rob_id_LoadStoreBufferRS2ALU),
-  ._alu_value(_alu_value_LoadStoreBufferRS2ALU),
-  ._alu_full(_alu_full_LoadStoreBufferRS2ALU),
-  ._lsb_ready(_lsb_ready_LoadStoreBuffer2LoadStoreBufferALU),
-  ._lsb_rob_id(_lsb_rob_id_LoadStoreBuffer2LoadStoreBufferALU),
-  ._lsb_value(_lsb_value_LoadStoreBuffer2LoadStoreBufferALU)
+  ._lsb_st_value(_lsb_st_value_LoadStoreBuffer2LoadStoreBufferRS),
+  ._lsb_ptr_value(_lsb_ptr_value_LoadStoreBuffer2LoadStoreBufferRS)
 );
 
 LoadStoreBuffer LSB(
@@ -395,9 +378,7 @@ LoadStoreBuffer LSB(
   ._lsb_rs_ready(_lsb_rs_ready_LoadStoreBuffer2LoadStoreBufferRS),
   ._lsb_rs_rob_id(_lsb_rob_id_LoadStoreBuffer2LoadStoreBufferRS),
   ._lsb_rs_st_value(_lsb_st_value_LoadStoreBuffer2LoadStoreBufferRS),
-  ._lsb_alu_ready(_lsb_ready_LoadStoreBuffer2LoadStoreBufferALU),
-  ._alu_rob_id(_lsb_rob_id_LoadStoreBuffer2LoadStoreBufferALU),
-  ._alu_value(_lsb_value_LoadStoreBuffer2LoadStoreBufferALU),
+  ._lsb_rs_ptr_value(_lsb_ptr_value_LoadStoreBuffer2LoadStoreBufferRS),
   ._work_type(_work_type),
   ._lsb_mem_ready(_lsb_mem_ready_LoadStoreBuffer2Mem),
   ._r_nw_in(_r_nw_in_LoadStoreBuffer2Mem),
@@ -419,9 +400,9 @@ ReorderBuffer ROB(
   ._stall(_stall_recover_ROB2Mem),
   ._get_register_status_1(_get_register_status_1_Fetcher2ROB),
   ._get_register_status_2(_get_register_status_2_Fetcher2ROB),
-  ._register_ready_1(_register_ready_1_Fetcher2ROB),
+  ._register_dep_1(_rob_register_dep_1_Fetcher2ROB),
   ._register_value_1(_register_value_1_Fetcher2ROB),
-  ._register_ready_2(_register_ready_2_Fetcher2ROB),
+  ._register_dep_2(_rob_register_dep_2_Fetcher2ROB),
   ._register_value_2(_register_value_2_Fetcher2ROB),
   ._rob_ready(_rob_ready_ROB2Fetcher),
   ._rob_type(_rob_type_ROB2Fetcher),
@@ -433,6 +414,7 @@ ReorderBuffer ROB(
   ._rob_tail_id(_rob_tail_id_Fetcher2ROB),
   ._br_rob(_br_rob_ROB2Fetcher),
   ._rob_new_pc(_rob_new_pc_ROB2Fetcher),
+  ._rob_imm(_rob_imm_ROB2Fetcher),
   ._rob_msg_ready_1(_rob_msg_ready_1_RS2ROB),
   ._rob_msg_rob_id_1(_rob_msg_rob_id_1_RS2ROB),
   ._rob_msg_value_1(_rob_msg_value_1_RS2ROB),
@@ -451,7 +433,14 @@ ReorderBuffer ROB(
   ._rf_commit_ready(_rf_commit_ready_ROB2RegisterFile),
   ._rf_commit_rob_id(_rf_commit_rob_id_ROB2RegisterFile),
   ._rf_commit_register_id(_rf_commit_register_id_ROB2RegisterFile),
-  ._rf_commit_value(_rf_commit_value_ROB2RegisterFile)
+  ._rf_commit_value(_rf_commit_value_ROB2RegisterFile),
+  ._ask_rd_1(_ask_rd_1_ROB2RegisterFile),
+  ._ask_rd_2(_ask_rd_2_ROB2RegisterFile),
+  ._dep_rd_1(_dep_rd_1_ROB2RegisterFile),
+  ._dep_rd_2(_dep_rd_2_ROB2RegisterFile),
+  ._dep_value_1(_dep_value_1_ROB2RegisterFile),
+  ._dep_value_2(_dep_value_2_ROB2RegisterFile),
+  ._store_ready(_store_ready_ROB2LSB)
 );
 
 RegisterFile RF(
@@ -465,41 +454,15 @@ RegisterFile RF(
   ._rob_commit_rob_id(_rf_commit_rob_id_ROB2RegisterFile),
   ._rob_commit_register_id(_rf_commit_register_id_ROB2RegisterFile),
   ._rob_commit_value(_rf_commit_value_ROB2RegisterFile),
-  ._get_register_id_dependency_1(_get_register_id_dependency_1_Fetcher2RegisterFile),
-  ._get_register_id_dependency_2(_get_register_id_dependency_2_Fetcher2RegisterFile),
-  ._register_id_has_dependency_1(_register_id_has_dependency_1_Fetcher2RegisterFile),
-  ._register_id_dependency_1(_register_id_dependency_1_Fetcher2RegisterFile),
-  ._register_value_1(_register_value_1_Fetcher2RegisterFile),
-  ._register_id_has_dependency_2(_register_id_has_dependency_2_Fetcher2RegisterFile),
-  ._register_id_dependency_2(_register_id_dependency_2_Fetcher2RegisterFile),
-  ._register_value_2(_register_value_2_Fetcher2RegisterFile),
+  ._ask_rd_1(_ask_rd_1_ROB2RegisterFile),
+  ._ask_rd_2(_ask_rd_2_ROB2RegisterFile),
+  ._dep_rd_1(_dep_rd_1_ROB2RegisterFile),
+  ._dep_rd_2(_dep_rd_2_ROB2RegisterFile),
+  ._dep_value_1(_dep_value_1_ROB2RegisterFile),
+  ._dep_value_2(_dep_value_2_ROB2RegisterFile),
   ._rf_msg_ready(_rf_msg_ready_RS2RegisterFile),
   ._rf_msg_rob_id(_rf_msg_rob_id_RS2RegisterFile),
   ._rf_msg_value(_rf_msg_value_RS2RegisterFile)
 );
-
-// //每周期stall要flush
-// always @(posedge clk_in)
-//   begin
-//     if (rst_in)
-//       begin
-//         _stall <= 1'b0;
-//       end
-//     else if (!rdy_in)
-//       begin
-//         _stall <= 1'b0;
-//       end
-//     else
-//       begin
-//         if(_stall_set_Fetcher2Mem)
-//         begin
-//           _stall <= 1'b1;
-//         end
-//         else if(_stall_recover_ROB2Mem)
-//         begin
-//           _stall <= 1'b0;
-//         end
-//       end
-//   end
 
 endmodule

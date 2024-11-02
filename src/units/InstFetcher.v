@@ -23,24 +23,13 @@ module InstFetcher(
 
     //Inner Decoder
 
-    //RegisterFile outputs
-    output wire [4:0]           _get_register_id_dependency_1,
-    output wire [4:0]           _get_register_id_dependency_2,
-    //RegisterFile inputs
-    input wire                  _register_id_has_dependency_1,
-    input wire [4:0]            _register_id_dependency_1,
-    input wire [31:0]           _register_value_1,
-    input wire                  _register_id_has_dependency_2,
-    input wire [4:0]            _register_id_dependency_2,
-    input wire [31:0]           _register_value_2,
-
     //ROB outputs with dependencies
     output wire [4:0]           _get_register_status_1,
     output wire [4:0]           _get_register_status_2,
     //ROB inputs with dependencies
-    input wire                  _rob_register_ready_1,
+    input wire [4:0]            _rob_register_dep_1,
     input wire [31:0]           _rob_register_value_1,
-    input wire                  _rob_register_ready_2,
+    input wire [4:0]            _rob_register_dep_2,
     input wire [31:0]           _rob_register_value_2,
 
     //ROB inputs
@@ -48,7 +37,7 @@ module InstFetcher(
     input  wire [4:0]           _rob_tail_id,
     //ROB outputs
     output wire                 _rob_ready,
-    output wire [4:0]           _rob_type,
+    output wire [6:0]           _rob_type,
     output wire [31:0]          _rob_inst_addr,
     output wire [4:0]           _rob_rd,
     output wire [31:0]          _rob_value,
@@ -58,7 +47,7 @@ module InstFetcher(
     input  wire                 _rs_full,
     //ReservationStation outputs
     output wire                 _rs_ready,
-    output wire [4:0]           _rs_type,
+    output wire [6:0]           _rs_type,
     output wire [3:0]           _rs_op,
     output wire [4:0]           _rs_rob_id,
     output wire [31:0]          _rs_r1,
@@ -73,7 +62,7 @@ module InstFetcher(
     input  wire                 _lsb_full,
     //LoadStoreBuffer outputs
     output wire                 _lsb_ready,
-    output wire [4:0]           _lsb_type,
+    output wire [6:0]           _lsb_type,
     output wire [2:0]           _lsb_op,
     output wire [4:0]           _lsb_rob_id,
 
@@ -81,7 +70,7 @@ module InstFetcher(
     input  wire                 _lsb_rs_full,
     //LoadStoreBufferRS outputs
     output wire                 _lsb_rs_ready,
-    output wire [4:0]           _lsb_rs_type,
+    output wire [6:0]           _lsb_rs_type,
     output wire [4:0]           _lsb_rs_rob_id,
     output wire [31:0]          _lsb_rs_r1,
     output wire [31:0]          _lsb_rs_sv,
@@ -98,6 +87,9 @@ Decoder dc(
     .clk_in(clk_in),
     .rst_in(rst_in),
     .rdy_in(rdy_in),
+    ._br_rob(_br_rob),
+    ._rob_new_pc(_rob_new_pc),
+    ._rob_imm(_rob_imm),
     ._clear(_clear),
     ._stall(_stall),
     ._inst_in(_inst_in),
@@ -116,19 +108,11 @@ Issue launcher(
     ._inst_addr(_pc),
     ._jalr_rd(_jalr_rd),
     ._InstFetcher_need_inst(_queue_not_full),
-    ._get_register_id_dependency_1(_get_register_id_dependency_1),
-    ._get_register_id_dependency_2(_get_register_id_dependency_2),
-    ._register_id_has_dependency_1(_register_id_has_dependency_1),
-    ._register_id_dependency_1(_register_id_dependency_1),
-    ._register_value_1(_register_value_1),
-    ._register_id_has_dependency_2(_register_id_has_dependency_2),
-    ._register_id_dependency_2(_register_id_dependency_2),
-    ._register_value_2(_register_value_2),
     ._get_register_status_1(_get_register_status_1),
     ._get_register_status_2(_get_register_status_2),
-    ._rob_register_ready_1(_rob_register_ready_1),
+    ._rob_register_dep_1(_rob_register_dep_1),
     ._rob_register_value_1(_rob_register_value_1),
-    ._rob_register_ready_2(_rob_register_ready_2),
+    ._rob_register_dep_2(_rob_register_dep_2),
     ._rob_register_value_2(_rob_register_value_2),
     ._rob_full(_rob_full),
     ._rob_tail_id(_rob_tail_id),
@@ -137,6 +121,7 @@ Issue launcher(
     ._rob_inst_addr(_rob_inst_addr),
     ._rob_rd(_rob_rd),
     ._rob_value(_rob_value),
+    ._rob_jump_imm(_rob_jump_imm),
     ._rs_full(_rs_full),
     ._rs_ready(_rs_ready),
     ._rs_type(_rs_type),

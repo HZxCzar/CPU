@@ -8,7 +8,7 @@ module ALU(
     //ReservationStation inputs
     input wire           _alu_ready,
     input wire [4:0]     _alu_rob_id,
-    input wire [4:0]     _alu_type,
+    input wire [6:0]     _alu_type,
     input wire [3:0]     _alu_op,
     input wire [31:0]    _alu_v1,
     input wire [31:0]    _alu_v2,

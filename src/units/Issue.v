@@ -12,17 +12,6 @@ module Issue(
     input  wire [31:0]          _jalr_rd, 
     output wire                 _InstFetcher_need_inst,
 
-    // //RegisterFile outputs
-    // output wire [4:0]           _get_register_id_dependency_1,
-    // output wire [4:0]           _get_register_id_dependency_2,
-    // //RegisterFile inputs
-    // input wire                  _register_id_has_dependency_1,
-    // input wire [4:0]            _register_id_dependency_1,
-    // input wire [31:0]           _register_value_1,
-    // input wire                  _register_id_has_dependency_2,
-    // input wire [4:0]            _register_id_dependency_2,
-    // input wire [31:0]           _register_value_2,
-
     //ROB outputs with dependencies
     output wire [4:0]           _get_register_status_1,
     output wire [4:0]           _get_register_status_2,
@@ -37,7 +26,7 @@ module Issue(
     input  wire [4:0]           _rob_tail_id,
     //ROB outputs
     output wire                  _rob_ready,
-    output wire [4:0]            _rob_type,
+    output wire [6:0]            _rob_type,
     output wire [31:0]          _rob_inst_addr,
     output wire [4:0]            _rob_rd,
     output wire [31:0]           _rob_value,
@@ -48,7 +37,7 @@ module Issue(
     input  wire                 _rs_full,
     //ReservationStation outputs
     output wire                  _rs_ready,
-    output wire [4:0]            _rs_type,
+    output wire [6:0]            _rs_type,
     output wire [3:0]            _rs_op,
     output wire [4:0]           _rs_rob_id,
     output wire [31:0]          _rs_r1,
@@ -63,7 +52,7 @@ module Issue(
     input  wire                 _lsb_full,
     //LoadStoreBuffer outputs
     output wire                 _lsb_ready,
-    output wire [4:0]           _lsb_type,
+    output wire [6:0]           _lsb_type,
     output wire [2:0]           _lsb_op,
     output wire [4:0]           _lsb_rob_id,
 
@@ -71,7 +60,7 @@ module Issue(
     input  wire                 _lsb_rs_full,
     //LoadStoreBufferRS outputs
     output wire                  _lsb_rs_ready,
-    output wire [4:0]            _lsb_rs_type,
+    output wire [6:0]            _lsb_rs_type,
     output wire [4:0]           _lsb_rs_rob_id,
     output wire [31:0]          _lsb_rs_r1,
     output wire [31:0]          _lsb_rs_sv,
@@ -139,7 +128,7 @@ assign _rob_ready=_pop_valid;
 assign _rob_type=opcode;
 assign _rob_inst_addr=_top_inst_addr;
 assign _rob_rd = (opcode == 7'b1100011) ? {4'b0000, predict} : (opcode == 7'b0100011) ? 5'b00000 : rd;
-assign _rob_value=(opcode==7'b0110111)?immU:(opcode==7'b1100111)_jalr_rd:{31{1'b0}};
+assign _rob_value=(opcode==7'b0110111)?immU:(opcode==7'b1100111)?_jalr_rd:{31{1'b0}};
 assign _rob_jump_imm=(opcode == 7'b1100011) ? immB : (opcode==7'b1101111)?immJal:32'b0;//immJal未来在ROB用不到,只是记录
 
 
@@ -160,9 +149,9 @@ assign _rs_rob_id=_rob_tail_id;
 assign _rs_r1=(opcode == 7'b1101111 || opcode==7'b0010111) ? _top_inst_addr:_rob_register_dep_1?0:_rob_register_value_1;
 assign _rs_r2=_rob_register_dep_2?0:_rob_register_value_2;
 assign _rs_imm=(opcode == 7'b1100011) ? immB : (opcode == 7'b1101111) ? {29'b0,3'd4} : (opcode == 7'b1100111) ? immJalr : (opcode == 7'b0000011 || opcode == 7'b0010011) ? immI :(opcode==7'b0010111)?immU: immS;
-assign _rs_has_dep1=_need_rs1?(_rob_register_dep_1&&!_rob_register_ready_1):1'b0;
+assign _rs_has_dep1=_need_rs1?(_rob_register_dep_1):1'b0;
 assign _rs_dep1=_rs_has_dep1?_rob_register_dep_1:5'b0;
-assign _rs_has_dep2=_need_rs2?(_rob_register_dep_2&&!_rob_register_ready_2):1'b0;
+assign _rs_has_dep2=_need_rs2?(_rob_register_dep_2):1'b0;
 assign _rs_dep2=_rs_has_dep2?_rob_register_dep_2:5'b0;
 
 //LoadStoreBuffer
@@ -179,9 +168,9 @@ assign _lsb_rs_r1=_rob_register_dep_1?0:_rob_register_value_1;
 assign _lsb_rs_sv=_rob_register_dep_2?0:_rob_register_value_2;
 assign _lsb_rs_imm=(opcode == 7'b0000011) ? immI :
                    (opcode == 7'b0100011) ? immS : 32'b0; 
-assign _lsb_rs_has_dep1=_need_rs1?(_rob_register_dep_1&&!_rob_register_ready_1):1'b0;
+assign _lsb_rs_has_dep1=_need_rs1?(_rob_register_dep_1):1'b0;
 assign _lsb_rs_dep1=_lsb_rs_has_dep1?_rob_register_dep_1:5'b0;
-assign _lsb_rs_has_dep2=_need_rs2?(_rob_register_dep_2&&!_rob_register_ready_2):1'b0;
+assign _lsb_rs_has_dep2=_need_rs2?(_rob_register_dep_2):1'b0;
 assign _lsb_rs_dep2=_lsb_rs_has_dep2?_rob_register_dep_2:5'b0;
 
 endmodule

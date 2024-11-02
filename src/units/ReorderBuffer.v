@@ -17,7 +17,7 @@ module ReorderBuffer(
     output wire [31:0]          _register_value_2,
     //Decoder inputs
     input wire                  _rob_ready,
-    input wire [4:0]            _rob_type,
+    input wire [6:0]            _rob_type,
     input wire [31:0]           _rob_inst_addr,
     input wire [4:0]            _rob_rd,
     input wire [31:0]           _rob_value,
@@ -62,7 +62,10 @@ module ReorderBuffer(
     input wire [4:0]            _dep_rd_1,
     input wire [4:0]            _dep_rd_2,
     input wire [31:0]           _dep_value_1,
-    input wire [31:0]           _dep_value_2
+    input wire [31:0]           _dep_value_2,
+
+    //Store Control
+    output wire                 _store_ready
 );
 //编号从1开始
 //特判lui
@@ -131,7 +134,12 @@ always @(posedge clk_in)begin:MainBlock
             size<=size+1;
         end
         if(_cdb_ready)begin
-            rob_status[_cdb_rob_id]<=2'b10;
+            if(rob_type[_cdb_rob_id]==7'b0100011)begin
+                rob_status[_cdb_rob_id]<=2'b01;
+            end
+            else begin
+                rob_status[_cdb_rob_id]<=2'b10;
+            end
             if(rob_type[_cdb_rob_id]==7'b1100111)begin
                 rob_jump_imm[_cdb_rob_id]<=_cdb_value;
             end
@@ -162,12 +170,11 @@ assign _rf_commit_ready=commit_valid && _commit_has_rd;
 assign _rf_commit_rob_id=head;
 assign _rf_commit_register_id=rob_rd[head];
 assign _rf_commit_value=rob_value[head];
-
 assign _br_rob=(_clear || (commit_valid && rob_type[head]==7'b1100111));
 assign _clear=commit_valid && (rob_rd[head]==7'b1100011) && (rob_rd[head]!=rob_value[head]);
 assign _stall=commit_valid && (rob_rd[head]==7'b1100111);
 assign _rob_new_pc=(rob_type[head]==7'b1100111)?32'b0:inst_addr[head];
 assign _rob_imm=rob_jump_imm[head];
 
-
+assign _store_ready=rob_type[head]==7'b0100011 && rob_status[head]==2'b01;
 endmodule
