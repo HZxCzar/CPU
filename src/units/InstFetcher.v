@@ -14,11 +14,12 @@ module InstFetcher(
     input  wire                  _inst_ready_in,
     input  wire [31:0]           _inst_in,
     output wire                  _InstFetcher_need_inst,
-    output wire [31:0]           _pc,
+    output wire [31:0]           _next_pc,
 
     //ROB Branch
     input  wire                 _br_rob,
     input  wire [31:0]          _rob_new_pc,
+    input  wire [31:0]          _rob_imm,
 
     //Inner Decoder
 
@@ -90,7 +91,7 @@ module InstFetcher(
     output wire                 _lsb_rs_has_dep2,
     output wire [4:0]           _lsb_rs_dep2
 );
-wire[31:0] _next_pc;
+reg[31:0] _pc;
 wire _queue_not_full;
 reg [31:0] _jalr_rd;
 Decoder dc(
@@ -172,11 +173,13 @@ always @(posedge clk_in) begin
     end else begin
         if(_stall) begin
             _jalr_rd <= _next_pc;
-        end 
+        end else begin
+            _pc<=_next_pc;
+        end
     end
 end
 
-assign _InstFetcher_need_inst = !_stall && !_queue_not_full && !_mem_busy;
-assign _pc = _br_rob ? _rob_new_pc : _next_pc;
+assign _InstFetcher_need_inst = !_stall && _queue_not_full && !_mem_busy;
+// assign _pc = _next_pc;
 //adder若stall则计算_jalr_rd
 endmodule

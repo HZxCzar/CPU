@@ -5,17 +5,18 @@ module  MemControl(
 
     //with Memory
     input  wire [ 7:0]           mem_din,		// data input bus
-    output reg [ 7:0]           mem_dout,		// data output bus
-    output reg [31:0]           mem_a,			// address bus (only 17:0 is used)
-    output reg                  mem_wr,			// write/read signal (1 for write)
+    output wire [ 7:0]           mem_dout,		// data output bus
+    output wire [31:0]           mem_a,			// address bus (only 17:0 is used)
+    output wire                  mem_wr,			// write/read signal (1 for write)
 	
 	output  wire                io_buffer_full, // 1 if uart buffer is full
 
-    output reg _mem_busy,
+    output wire _mem_busy,
+    input wire _clear,
 
     //Fetch
-    output reg                 _inst_ready_in_Mem2Fetcher,
-    output reg [31:0]          _inst_in_Mem2Fetcher,
+    output wire                 _inst_ready_in_Mem2Fetcher,
+    output wire [31:0]          _inst_in_Mem2Fetcher,
     input wire [31:0]           _pc_Fetcher2Mem,
     input wire                  _stall_set,
     input wire                  _InstFetcher_need_inst,
@@ -28,107 +29,62 @@ module  MemControl(
     input wire                  _r_nw_in_LoadStoreBuffer2Mem,
     input wire [31:0]           _addr_LoadStoreBuffer2Mem,
     input wire [31:0]           _data_in_LoadStoreBuffer2Mem,
-    output reg                 _lsb_mem_ready_Mem2LoadStoreBuffer,
-    output reg [31:0]          _data_out_Mem2LoadStoreBuffer
+    output wire                 _lsb_mem_ready_Mem2LoadStoreBuffer,
+    output wire [31:0]          _data_out_Mem2LoadStoreBuffer
 );
-reg[1:0] work_on_mode;
-reg[23:0] msg;
-reg[1:0] counter;
-reg[31:0] _input_data;
-reg waiter;
 reg _stall;
+reg [1:0] work_on_mode;
+reg [1:0] waiter;
+reg [31:0] addr;
+reg write_waiter;
+reg[7:0]  data_in[1:3];
 always @(posedge clk_in) begin
-    if(_stall_recover) begin
-        _stall <= 1'b0;
+    if(_stall_recover || _clear) begin
+        _stall<=1'b0;
     end else if(_stall_set) begin
-        _stall <= 1'b1;
+        _stall<=1'b1;
     end
-    if(rst_in || !rdy_in) begin
+    if(rst_in || !rdy_in || _clear) begin
+        _stall<=1'b0;
         work_on_mode <= 2'b00;
-        _mem_busy <= 1'b0;
-        mem_wr <= 1'b0;
-        mem_a <= 32'b0;
-        mem_dout <= 8'b0;
-        counter <= 2'b00;
-    end else if(work_on_mode==2'b11) begin
-        if(counter!=2'b00) begin
-            case(counter)
-                2'b11: msg[7:0] <= mem_din;
-                2'b10: msg[15:8] <= mem_din;
-                2'b01: msg[23:16] <= mem_din;
-            endcase
-            counter <= counter - 1;
-            mem_a<=mem_a+1;
-        end else if(mem_din) begin
-            _inst_in_Mem2Fetcher <= {mem_din,msg};
-            _inst_ready_in_Mem2Fetcher <= 1'b1;
-            work_on_mode <= 2'b00;
-            _mem_busy <= 1'b0;
+        waiter<=0;
+        write_waiter<=0;
+        data_in[1]<=0;
+        data_in[2]<=0;
+        data_in[3]<=0;
+    end else begin
+        if(waiter==0 && write_waiter)begin
+            write_waiter<=0;
         end
-    end else if(work_on_mode!=2'b00) begin
-        if(work_on_mode==2'b01) begin
-            if(counter!=2'b00) begin
-                case(counter)
-                2'b11: mem_dout<=_input_data[15:8];
-                2'b10: mem_dout<=_input_data[23:16];
-                2'b01: mem_dout<=_input_data[31:24];
-                endcase
-                counter <= counter - 1;
-                mem_a<=mem_a+1;
-            end else begin
-                _data_out_Mem2LoadStoreBuffer <= {32{1'b0}};
-                _lsb_mem_ready_Mem2LoadStoreBuffer <= 1'b1;
-                work_on_mode <= 2'b00;
-                _mem_busy <= 1'b0;
-                _input_data<=0;
-                waiter<=1;
+        if(waiter!=0)begin
+            waiter<=waiter-1;
+            addr<=addr+1;
+            data_in[waiter]<=mem_din;
+        end
+        else if(_lsb_mem_ready_LoadStoreBuffer2Mem && !write_waiter)begin
+            if(_r_nw_in_LoadStoreBuffer2Mem)begin
+                work_on_mode <= 2'b01;
+                write_waiter<=1;
             end
-        end else if(work_on_mode==2'b10) begin
-            if(counter!=2'b00) begin
-                case(counter)
-                2'b11: msg[7:0] <= mem_din;
-                2'b10: msg[15:8] <= mem_din;
-                2'b01: msg[23:16] <= mem_din;
-                endcase
-                counter <= counter - 1;
-                mem_a<=mem_a+1;
-            end else begin
-                _data_out_Mem2LoadStoreBuffer <= {mem_din,msg};
-                _lsb_mem_ready_Mem2LoadStoreBuffer <= 1'b1;
-                work_on_mode <= 2'b00;
-                _mem_busy <= 1'b0;
+            else begin
+                work_on_mode <= 2'b10;
             end
+            waiter<=_work_type;
+            addr<=_addr_LoadStoreBuffer2Mem;
         end
-    end else if(_lsb_mem_ready_LoadStoreBuffer2Mem && (_r_nw_in_LoadStoreBuffer2Mem || waiter==0)) begin
-        if(_r_nw_in_LoadStoreBuffer2Mem) begin
-            work_on_mode <= 2'b01;
-            _mem_busy <= 1'b1;
-            mem_wr <= 1'b1;
-            mem_a <= _addr_LoadStoreBuffer2Mem;
-            mem_dout <= _data_in_LoadStoreBuffer2Mem[7:0];
-            _input_data <= _data_in_LoadStoreBuffer2Mem;
-        end else begin
-            work_on_mode <= 2'b10;
-            _mem_busy <= 1'b1;
-            mem_wr <= 1'b0;
-            mem_a <= _addr_LoadStoreBuffer2Mem;
-            mem_dout <= 8'b0;
+        else if(_InstFetcher_need_inst && !_stall_set && !_stall)begin
+            work_on_mode <= 2'b11;
+            waiter<=3;
+            addr<=_pc_Fetcher2Mem;
         end
-        counter <= _work_type;
-    end else if(!_stall_recover && (_stall_set || _stall)) begin
-        work_on_mode <= 2'b00;
-        _mem_busy <= 1'b0;
-        mem_wr <= 1'b0;
-        mem_a <= 32'b0;
-        mem_dout <= 8'b0;
-        counter <= 2'b00;
-    end else if(_InstFetcher_need_inst) begin
-        work_on_mode <= 2'b11;
-        _mem_busy <= 1'b1;
-        mem_wr <= 1'b0;
-        mem_a <= _pc_Fetcher2Mem;
-        mem_dout <= 8'b0;
-        counter <= 2'b11;
     end
 end
+assign mem_dout=(work_on_mode==2'b01)?(waiter==3)?_data_in_LoadStoreBuffer2Mem[31:24]:(waiter==2)?_data_in_LoadStoreBuffer2Mem[23:16]:(waiter==1)?_data_in_LoadStoreBuffer2Mem[15:8]:_data_in_LoadStoreBuffer2Mem[7:0]:0;
+assign mem_wr=(work_on_mode==2'b01)?1'b1:0;
+assign mem_a=addr;
+assign _lsb_mem_ready_Mem2LoadStoreBuffer=(work_on_mode==2'b01 || work_on_mode==2'b10) && waiter==0;
+assign _data_out_Mem2LoadStoreBuffer={data_in[3],data_in[2],data_in[1],mem_din};
+assign _inst_ready_in_Mem2Fetcher=(work_on_mode==2'b11) && waiter==0;
+assign _inst_in_Mem2Fetcher={data_in[3],data_in[2],data_in[1],mem_din};
+assign _mem_busy=waiter!=0;
 endmodule
