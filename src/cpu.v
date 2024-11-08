@@ -1,18 +1,18 @@
 // RISCV32 CPU top module
 // port modification allowed for debugging purposes
-`include "units/ALU.v"
-`include "units/CDB.v"
-`include "units/InstFetcher.v"
-`include "units/Decoder.v"
-`include "units/Issue.v"
-`include "common/fifo/fifo.v"
-`include "units/LoadStoreBuffer.v"
-`include "units/LoadStoreBufferRS.v"
-`include "units/MemControl.v"
-`include "units/ReorderBuffer.v"
-`include "units/RegisterFile.v"
-`include "units/ReservationStation.v"
-`include "units/LoadStoreBufferALU.v"
+// `include "units/ALU.v"
+// `include "units/CDB.v"
+// `include "units/InstFetcher.v"
+// `include "units/Decoder.v"
+// `include "units/Issue.v"
+// `include "common/fifo/fifo.v"
+// `include "units/LoadStoreBuffer.v"
+// `include "units/LoadStoreBufferRS.v"
+// `include "units/MemControl.v"
+// `include "units/ReorderBuffer.v"
+// `include "units/RegisterFile.v"
+// `include "units/ReservationStation.v"
+// `include "units/LoadStoreBufferALU.v"
 
 module cpu(
   input  wire                 clk_in,			// system clock signal
@@ -42,6 +42,7 @@ module cpu(
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
 wire _clear;
+assign dbgreg_dout = 32'b0;
 
 //CDB
 wire _cdb_ready;
@@ -389,7 +390,8 @@ LoadStoreBuffer LSB(
   ._data_out(_data_out_Mem2LoadStoreBuffer),
   ._lsb_cdb_ready(_cdb_ls_ready),
   ._lsb_cdb_rob_id(_cdb_ls_rob_id),
-  ._lsb_cdb_value(_cdb_ls_value)
+  ._lsb_cdb_value(_cdb_ls_value),
+  ._lsb_store_ready(_store_ready_ROB2LSB)
 );
 
 ReorderBuffer ROB(
@@ -447,6 +449,7 @@ RegisterFile RF(
   .clk_in(clk_in),
   .rst_in(rst_in),
   .rdy_in(rdy_in),
+  ._clear(_clear),
   ._rob_launch_ready(_rf_launch_ready_ROB2RegisterFile),
   ._rob_launch_rob_id(_rf_launch_rob_id_ROB2RegisterFile),
   ._rob_launch_register_id(_rf_launch_register_id_ROB2RegisterFile),

@@ -153,9 +153,10 @@ Issue launcher(
 );
 
 always @(posedge clk_in) begin
-    if(rst_in | !rdy_in) begin
+    if(rst_in) begin
         _jalr_rd <= 0;
-    end else begin
+        _pc <= 0;
+    end else if(rdy_in)begin
         if(_stall) begin
             _jalr_rd <= _next_pc;
         end else begin

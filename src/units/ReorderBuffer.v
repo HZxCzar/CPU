@@ -71,7 +71,7 @@ module ReorderBuffer(
 //特判lui
 reg [4:0] head,tail,size;
 reg busy[1:31];
-reg[4:0] rob_type[1:31];
+reg[6:0] rob_type[1:31];
 reg[31:0] inst_addr[1:31];
 reg[4:0] rob_rd[1:31];
 reg[31:0] rob_value[1:31];
@@ -88,16 +88,16 @@ assign _rf_launch_register_id=_rob_rd;
 
 assign _ask_rd_1=_get_register_status_1;
 assign _ask_rd_2=_get_register_status_2;
-assign _register_dep_1=(_dep_rd_1==0 || rob_status[_dep_rd_1]==2);
-assign _register_dep_2=(_dep_rd_2==0 || rob_status[_dep_rd_2]==2);
+assign _register_dep_1=(_dep_rd_1==0 || rob_status[_dep_rd_1]==2)?1'b0:_dep_rd_1;
+assign _register_dep_2=(_dep_rd_2==0 || rob_status[_dep_rd_2]==2)?1'b0:_dep_rd_2;
 assign _register_value_1=_dep_rd_1?rob_value[_dep_rd_1]:_dep_value_1;
 assign _register_value_2=_dep_rd_2?rob_value[_dep_rd_2]:_dep_value_2;
 
 always @(posedge clk_in)begin:MainBlock
     integer i;
-    if(rst_in | !rdy_in)begin
-        head<=0;
-        tail<=0;
+    if(rst_in)begin
+        head<=1;
+        tail<=1;
         size<=0;
         for(i=1;i<=31;i=i+1)begin
         busy[i]<=0;
@@ -108,9 +108,9 @@ always @(posedge clk_in)begin:MainBlock
         rob_jump_imm[i]<=0;
         rob_status[i]<=0;
         end
-    end else if(_clear)begin
-        head<=0;
-        tail<=0;
+    end else if(_clear && rdy_in)begin
+        head<=1;
+        tail<=1;
         size<=0;
         for(i=1;i<=31;i=i+1)begin
         busy[i]<=0;
@@ -121,7 +121,7 @@ always @(posedge clk_in)begin:MainBlock
         rob_jump_imm[i]<=0;
         rob_status[i]<=0;
         end
-    end else begin
+    end else if(rdy_in)begin
         if(_rob_ready)begin
             busy[tail]<=1;
             rob_type[tail]<=_rob_type;
@@ -134,12 +134,7 @@ always @(posedge clk_in)begin:MainBlock
             size<=size+1;
         end
         if(_cdb_ready)begin
-            if(rob_type[_cdb_rob_id]==7'b0100011)begin
-                rob_status[_cdb_rob_id]<=2'b01;
-            end
-            else begin
-                rob_status[_cdb_rob_id]<=2'b10;
-            end
+            rob_status[_cdb_rob_id]<=2'b10;
             if(rob_type[_cdb_rob_id]==7'b1100111)begin
                 rob_jump_imm[_cdb_rob_id]<=_cdb_value;
             end
@@ -165,16 +160,18 @@ always @(posedge clk_in)begin:MainBlock
     end
 end
 wire commit_valid=busy[head] && rob_status[head]==2'b10;
-wire _commit_has_rd=(_rob_type==7'b0110011||_rob_type==7'b0010011||_rob_type==7'b0000011||_rob_type==7'b1101111||_rob_type==7'b1100111||_rob_type==7'b0010111||_rob_type==7'b0110111);
+wire _commit_has_rd=(rob_type[head]==7'b0110011||rob_type[head]==7'b0010011||rob_type[head]==7'b0000011||rob_type[head]==7'b1101111||rob_type[head]==7'b1100111||rob_type[head]==7'b0010111||rob_type[head]==7'b0110111);
 assign _rf_commit_ready=commit_valid && _commit_has_rd;
 assign _rf_commit_rob_id=head;
 assign _rf_commit_register_id=rob_rd[head];
 assign _rf_commit_value=rob_value[head];
 assign _br_rob=(_clear || (commit_valid && rob_type[head]==7'b1100111));
-assign _clear=commit_valid && (rob_rd[head]==7'b1100011) && (rob_rd[head]!=rob_value[head]);
-assign _stall=commit_valid && (rob_rd[head]==7'b1100111);
+assign _clear=commit_valid && (rob_type[head]==7'b1100011) && (rob_rd[head][0]!=rob_value[head][0]);
+assign _stall=commit_valid && (rob_type[head]==7'b1100111);
 assign _rob_new_pc=(rob_type[head]==7'b1100111)?32'b0:inst_addr[head];
-assign _rob_imm=rob_jump_imm[head];
+assign _rob_imm=(rob_type[head]==7'b1100111 || rob_value[head][0]==1)?rob_jump_imm[head]:4;
 
-assign _store_ready=rob_type[head]==7'b0100011 && rob_status[head]==2'b01;
+wire[31:0] _debug_inst_addr=inst_addr[head];
+wire[6:0] _debug_rob_type=rob_type[head];
+assign _store_ready=rob_type[head]==7'b0100011;
 endmodule

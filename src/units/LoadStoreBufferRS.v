@@ -47,7 +47,7 @@ module LoadStoreBufferRS(
     output wire [31:0]          _lsb_ptr_value
 );
 reg busy[0:31];
-reg[4:0] rss_type[0:31];
+reg[6:0] rss_type[0:31];
 reg[4:0] rss_rob_id[0:31];
 reg[31:0] rss_v1[0:31];
 reg[31:0] rss_sv[0:31];
@@ -61,7 +61,7 @@ reg[4:0] size;
 assign _rs_full=size==32;
 always @(posedge clk_in) begin: MainBlock
     integer i;
-    if(rst_in | !rdy_in | _clear) begin
+    if(rst_in || _clear) begin
         size <= 5'b0;
         if(rst_in)begin
             for(i=0;i<32;i=i+1)begin
@@ -75,7 +75,7 @@ always @(posedge clk_in) begin: MainBlock
                 rss_dep2[i] <= 5'b0;
             end
         end
-    end else begin
+    end else if(rdy_in)begin
         if(_rs_ready) begin
             busy[_space] <= 1 ;
             rss_type[_space] <= _rs_type;
@@ -169,7 +169,7 @@ assign _alu_ready=_pop_valid;
 assign _alu_rob_id=rss_rob_id[_pop_pos];
 assign _alu_v1=rss_v1[_pop_pos];
 assign _alu_v2=rss_imm[_pop_pos];
-assign _lsb_rs_ready=_pop_valid && rss_type[_pop_pos]==7'b0100011;
+assign _lsb_rs_ready=_pop_valid;
 assign _lsb_rob_id=rss_rob_id[_pop_pos];
 assign _lsb_st_value=rss_sv[_pop_pos];
 assign _lsb_ptr_value=_result;

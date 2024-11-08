@@ -67,7 +67,7 @@ reg[4:0] size;
 assign _rs_full=size==32;
 always @(posedge clk_in) begin: MainBlock
     integer i;
-    if(rst_in | !rdy_in | _clear) begin
+    if(rst_in || _clear) begin
         size <= 5'b0;
         if(rst_in)begin
             for(i=0;i<32;i=i+1)begin
@@ -82,7 +82,7 @@ always @(posedge clk_in) begin: MainBlock
                 rss_dep2[i] <= 5'b0;
             end
         end
-    end else begin
+    end else if(rdy_in)begin
         if(_rs_ready) begin
             busy[_space] <= 1 ;
             rss_type[_space] <= _rs_type;
@@ -166,7 +166,10 @@ generate
 endgenerate
 assign _space= !busy[0]?5'd0:!busy[1]?5'd1:!busy[2]?5'd2:!busy[3]?5'd3:!busy[4]?5'd4:!busy[5]?5'd5:!busy[6]?5'd6:!busy[7]?5'd7:!busy[8]?5'd8:!busy[9]?5'd9:!busy[10]?5'd10:!busy[11]?5'd11:!busy[12]?5'd12:!busy[13]?5'd13:!busy[14]?5'd14:!busy[15]?5'd15:!busy[16]?5'd16:!busy[17]?5'd17:!busy[18]?5'd18:!busy[19]?5'd19:!busy[20]?5'd20:!busy[21]?5'd21:!busy[22]?5'd22:!busy[23]?5'd23:!busy[24]?5'd24:!busy[25]?5'd25:!busy[26]?5'd26:!busy[27]?5'd27:!busy[28]?5'd28:!busy[29]?5'd29:!busy[30]?5'd30:!busy[31]?5'd31:5'd0;
 assign _pop_pos = (_ready[0] ? 5'd0 :_ready[1] ? 5'd1 : _ready[2]? 5'd2 : _ready[3]? 5'd3 : _ready[4]? 5'd4 : _ready[5]? 5'd5 : _ready[6]? 5'd6 : _ready[7]? 5'd7 : _ready[8]? 5'd8 : _ready[9]? 5'd9 : _ready[10]? 5'd10 : _ready[11]? 5'd11 : _ready[12]? 5'd12 : _ready[13]? 5'd13 : _ready[14]? 5'd14 : _ready[15]? 5'd15 : _ready[16]? 5'd16 : _ready[17]? 5'd17 : _ready[18]? 5'd18 : _ready[19]? 5'd19 : _ready[20]? 5'd20 : _ready[21]? 5'd21 : _ready[22]? 5'd22 : _ready[23]? 5'd23 : _ready[24]? 5'd24 : _ready[25]? 5'd25 : _ready[26]? 5'd26 : _ready[27]? 5'd27 : _ready[28]? 5'd28 : _ready[29]? 5'd29 : _ready[30]? 5'd30 : _ready[31]? 5'd31 : 5'd0);
-assign _pop_valid=_alu_full && (_ready[0] || _ready[1] || _ready[2] || _ready[3] || _ready[4] || _ready[5] || _ready[6] || _ready[7] || _ready[8] || _ready[9] || _ready[10] || _ready[11] || _ready[12] || _ready[13] || _ready[14] || _ready[15] || _ready[16] || _ready[17] || _ready[18] || _ready[19] || _ready[20] || _ready[21] || _ready[22] || _ready[23] || _ready[24] || _ready[25] || _ready[26] || _ready[27] || _ready[28] || _ready[29] || _ready[30] || _ready[31]);
+wire _debug_ready0=_ready[0];
+wire _debug_rss_dep10=rss_dep1[0];
+wire _debug_rss_dep20=rss_dep2[0];
+assign _pop_valid=!_alu_full && (_ready[0] || _ready[1] || _ready[2] || _ready[3] || _ready[4] || _ready[5] || _ready[6] || _ready[7] || _ready[8] || _ready[9] || _ready[10] || _ready[11] || _ready[12] || _ready[13] || _ready[14] || _ready[15] || _ready[16] || _ready[17] || _ready[18] || _ready[19] || _ready[20] || _ready[21] || _ready[22] || _ready[23] || _ready[24] || _ready[25] || _ready[26] || _ready[27] || _ready[28] || _ready[29] || _ready[30] || _ready[31]);
 assign _alu_ready=_pop_valid;
 assign _alu_rob_id=rss_rob_id[_pop_pos];
 assign _alu_type=rss_type[_pop_pos];
