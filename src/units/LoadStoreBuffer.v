@@ -83,20 +83,15 @@ always @(posedge clk_in) begin: MainBlock
                             3'b010: lsb_sv[i] <= _lsb_rs_st_value;
                             default: lsb_sv[i] <= 0;
                         endcase
-                        if(_lsb_store_ready && i==head)begin
-                            lsb_status[head]<=2;
-                        end
-                        else begin
-                            lsb_status[i] <= 1;
-                        end
+                        lsb_status[i][0] <= 1;
                     end else begin
-                        lsb_status[i] <= 2;
+                        lsb_status[i] <= 3;
                     end
                 end
             end
         end
-        if(_lsb_store_ready && lsb_status[head]==1)begin
-            lsb_status[head]<=2;
+        if(_lsb_store_ready)begin
+            lsb_status[head][1]<=1;
         end
         if(_pop_valid)begin
             // last_rob_id <= lsb_rob_id[head];
@@ -112,11 +107,13 @@ wire[2:0] _op_old=lsb_msg[head][2:0];
 wire [4:0] next_head = _pop_valid?head == 31 ? 0 : head + 1:head;
 wire[2:0] _op=lsb_msg[next_head][2:0];
 wire[1:0] _debug_lsb_status = lsb_status[head];
-assign _lsb_mem_ready = busy[next_head] && lsb_status[next_head]==2 && !_mem_busy;
+assign _lsb_mem_ready = busy[next_head] && lsb_status[next_head]==3 && !_mem_busy;
 assign _r_nw_in = lsb_msg[next_head][3];
 assign _addr = lsb_addr[next_head];
 assign _data_in = lsb_sv[next_head];
 assign _work_type = (_op==3'b010)?2'b11:(_op==3'b001 || _op==3'b101)?2'b01:2'b00;
+
+wire [3:0] _debug_lsb_msg = lsb_msg[11];
 
 wire [4:0] _debug_rob_id = lsb_rob_id[next_head];
 

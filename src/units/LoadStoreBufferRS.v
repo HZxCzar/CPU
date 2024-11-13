@@ -63,7 +63,6 @@ always @(posedge clk_in) begin: MainBlock
     integer i;
     if(rst_in || _clear) begin
         size <= 6'b0;
-        if(rst_in)begin
             for(i=0;i<32;i=i+1)begin
                 busy[i] <= 0;
                 rss_type[i] <= 32'b0;
@@ -74,7 +73,6 @@ always @(posedge clk_in) begin: MainBlock
                 rss_dep1[i] <= 5'b0;
                 rss_dep2[i] <= 5'b0;
             end
-        end
     end else if(rdy_in)begin
         if(_rs_ready) begin
             busy[_space] <= 1 ;
@@ -156,6 +154,12 @@ always @(posedge clk_in) begin: MainBlock
 end
 
 wire _ready[0:31];
+wire _debug_ready_0 = _ready[0];
+wire _debug_busy_0 = busy[0];
+wire _debug_ready_1 = _ready[1];
+wire _debug_busy_1 = busy[1];
+wire _debug_ready_2 = _ready[2];
+wire _debug_busy_2 = busy[2];
 // pop
 generate
     genvar i;

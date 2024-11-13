@@ -131,4 +131,6 @@ assign _inst_ready_in_Mem2Fetcher=_ICache_ready;
 // assign _inst_in_Mem2Fetcher={mem_din,data_in[1],data_in[2],data_in[3]};
 assign _inst_in_Mem2Fetcher=_ICache_output;
 assign _mem_busy=waiter!=0;
+
+wire _debug_mem_wirte=mem_a==32'h30000;
 endmodule

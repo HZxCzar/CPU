@@ -71,6 +71,7 @@ module ReorderBuffer(
 //特判lui
 reg [4:0] head,tail,size;
 reg busy[1:31];
+reg _inst_first_clk;
 reg[6:0] rob_type[1:31];
 reg[31:0] inst_addr[1:31];
 reg[4:0] rob_rd[1:31];
@@ -107,11 +108,13 @@ always @(posedge clk_in)begin:MainBlock
         rob_value[i]<=0;
         rob_jump_imm[i]<=0;
         rob_status[i]<=0;
+        _inst_first_clk<=0;
         end
     end else if(_clear && rdy_in)begin
         head<=1;
         tail<=1;
         size<=0;
+        _inst_first_clk<=0;
         for(i=1;i<=31;i=i+1)begin
         busy[i]<=0;
         rob_type[i]<=0;
@@ -160,8 +163,14 @@ always @(posedge clk_in)begin:MainBlock
         end
         if(commit_valid)begin
             busy[head]<=0;
-            head<=(head==5'd31)?1:head+1;
+            head<=next_head;
             // size<=size-1;
+        end
+        if(commit_valid || (size==0 && _rob_ready))begin
+            _inst_first_clk<=1;
+        end
+        else begin
+            _inst_first_clk<=0;
         end
 
         if(_rob_ready && !commit_valid)begin
@@ -172,6 +181,7 @@ always @(posedge clk_in)begin:MainBlock
         end
     end
 end
+wire [4:0] next_head=head==5'd31?5'd1:head+1;
 wire commit_valid=busy[head] && rob_status[head]==2'b10;
 wire _commit_has_rd=(rob_type[head]==7'b0110011||rob_type[head]==7'b0010011||rob_type[head]==7'b0000011||rob_type[head]==7'b1101111||rob_type[head]==7'b1100111||rob_type[head]==7'b0010111||rob_type[head]==7'b0110111);
 assign _rf_commit_ready=commit_valid && _commit_has_rd;
@@ -183,7 +193,7 @@ assign _clear=commit_valid && (rob_type[head]==7'b1100011) && (rob_rd[head][0]!=
 assign _stall=commit_valid && (rob_type[head]==7'b1100111);
 assign _rob_new_pc=(rob_type[head]==7'b1100111)?32'b0:inst_addr[head];
 assign _rob_imm=(rob_type[head]==7'b1100111 || rob_value[head][0]==1)?rob_jump_imm[head]:4;
-assign _store_ready=rob_type[head]==7'b0100011;
+assign _store_ready=rob_type[head]==7'b0100011 && _inst_first_clk;
 
 wire[31:0] _debug_inst_addr=inst_addr[head];
 wire[6:0] _debug_rob_type=rob_type[head];
