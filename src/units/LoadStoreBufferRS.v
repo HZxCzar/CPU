@@ -57,12 +57,12 @@ reg[4:0] rss_dep2[0:31];
 wire[4:0] _space;
 wire _pop_valid;
 wire[4:0] _pop_pos;
-reg[4:0] size;
-assign _rs_full=size==32;
+reg[5:0] size;
+assign _rs_full=size==6'd32;
 always @(posedge clk_in) begin: MainBlock
     integer i;
     if(rst_in || _clear) begin
-        size <= 5'b0;
+        size <= 6'b0;
         if(rst_in)begin
             for(i=0;i<32;i=i+1)begin
                 busy[i] <= 0;
@@ -85,7 +85,7 @@ always @(posedge clk_in) begin: MainBlock
             rss_imm[_space] <= _rs_imm;
             rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
             rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
-            size <= size + 1;
+            // size <= size + 1;
         end
         
         for (i = 0;i<32;i=i+1) begin
@@ -144,6 +144,13 @@ always @(posedge clk_in) begin: MainBlock
         end
         if(_pop_valid)begin
             busy[_pop_pos] <= 0;
+        end
+
+        if(_rs_ready && !_pop_valid)begin
+            size <= size + 1;
+        end
+        else if(!_rs_ready && _pop_valid)begin
+            size <= size - 1;
         end
     end
 end

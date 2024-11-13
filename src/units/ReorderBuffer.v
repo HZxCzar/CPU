@@ -78,7 +78,7 @@ reg[31:0] rob_value[1:31];
 reg[31:0] rob_jump_imm[1:31];
 reg[1:0] rob_status[1:31];
 
-assign _rob_full=size==31;
+assign _rob_full=size==5'd31;
 assign _rob_tail_id=tail;
 
 wire _launch_has_rd=(_rob_type==7'b0110011||_rob_type==7'b0010011||_rob_type==7'b0000011||_rob_type==7'b1101111||_rob_type==7'b1100111||_rob_type==7'b0010111||_rob_type==7'b0110111);
@@ -130,8 +130,8 @@ always @(posedge clk_in)begin:MainBlock
             rob_value[tail]<=_rob_value;
             rob_jump_imm[tail]<=_rob_jump_imm;
             rob_status[tail]<=(_rob_type==7'b0110111)?2'b10:2'b0;
-            tail<=(tail==31)?1:tail+1;
-            size<=size+1;
+            tail<=(tail==5'd31)?1:tail+1;
+            // size<=size+1;
         end
         if(_cdb_ready)begin
             rob_status[_cdb_rob_id]<=2'b10;
@@ -145,6 +145,9 @@ always @(posedge clk_in)begin:MainBlock
             _rob_msg_rob_id_1<=_cdb_rob_id;
             _rob_msg_value_1<=_cdb_value;
         end
+        else begin
+            _rob_msg_ready_1<=0;
+        end
         if(_cdb_ls_ready)begin
             rob_status[_cdb_ls_rob_id]<=2'b10;
             rob_value[_cdb_ls_rob_id]<=_cdb_ls_value;
@@ -152,9 +155,19 @@ always @(posedge clk_in)begin:MainBlock
             _rob_msg_rob_id_2<=_cdb_ls_rob_id;
             _rob_msg_value_2<=_cdb_ls_value;
         end
+        else begin
+            _rob_msg_ready_2<=0;
+        end
         if(commit_valid)begin
             busy[head]<=0;
-            head<=(head==31)?1:head+1;
+            head<=(head==5'd31)?1:head+1;
+            // size<=size-1;
+        end
+
+        if(_rob_ready && !commit_valid)begin
+            size<=size+1;
+        end
+        else if(!_rob_ready && commit_valid)begin
             size<=size-1;
         end
     end
@@ -170,8 +183,43 @@ assign _clear=commit_valid && (rob_type[head]==7'b1100011) && (rob_rd[head][0]!=
 assign _stall=commit_valid && (rob_type[head]==7'b1100111);
 assign _rob_new_pc=(rob_type[head]==7'b1100111)?32'b0:inst_addr[head];
 assign _rob_imm=(rob_type[head]==7'b1100111 || rob_value[head][0]==1)?rob_jump_imm[head]:4;
+assign _store_ready=rob_type[head]==7'b0100011;
 
 wire[31:0] _debug_inst_addr=inst_addr[head];
 wire[6:0] _debug_rob_type=rob_type[head];
-assign _store_ready=rob_type[head]==7'b0100011;
+wire _debug_000=_debug_inst_addr==32'h1b4;
+wire _debug_0000=_debug_inst_addr==32'h244;
+
+wire [31:0] _debug_addr_1=inst_addr[1];
+wire [31:0] _debug_addr_2=inst_addr[2];
+wire [31:0] _debug_addr_3=inst_addr[3];
+wire [31:0] _debug_addr_4=inst_addr[4];
+wire [31:0] _debug_addr_5=inst_addr[5];
+wire [31:0] _debug_addr_6=inst_addr[6];
+wire [31:0] _debug_addr_7=inst_addr[7];
+wire [31:0] _debug_addr_8=inst_addr[8];
+wire [31:0] _debug_addr_9=inst_addr[9];
+wire [31:0] _debug_addr_10=inst_addr[10];
+wire [31:0] _debug_addr_11=inst_addr[11];
+wire [31:0] _debug_addr_12=inst_addr[12];
+wire [31:0] _debug_addr_13=inst_addr[13];
+wire [31:0] _debug_addr_14=inst_addr[14];
+wire [31:0] _debug_addr_15=inst_addr[15];
+wire [31:0] _debug_addr_16=inst_addr[16];
+wire [31:0] _debug_addr_17=inst_addr[17];
+wire [31:0] _debug_addr_18=inst_addr[18];
+wire [31:0] _debug_addr_19=inst_addr[19];
+wire [31:0] _debug_addr_20=inst_addr[20];
+wire [31:0] _debug_addr_21=inst_addr[21];
+wire [31:0] _debug_addr_22=inst_addr[22];
+wire [31:0] _debug_addr_23=inst_addr[23];
+wire [31:0] _debug_addr_24=inst_addr[24];
+wire [31:0] _debug_addr_25=inst_addr[25];
+wire [31:0] _debug_addr_26=inst_addr[26];
+wire [31:0] _debug_addr_27=inst_addr[27];
+wire [31:0] _debug_addr_28=inst_addr[28];
+wire [31:0] _debug_addr_29=inst_addr[29];
+wire [31:0] _debug_addr_30=inst_addr[30];
+wire [31:0] _debug_addr_31=inst_addr[31];
+
 endmodule

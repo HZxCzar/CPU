@@ -165,7 +165,9 @@ always @(posedge clk_in) begin
     end
 end
 
-assign _InstFetcher_need_inst = !_stall && _queue_not_full && !_mem_busy;
+assign _InstFetcher_need_inst = _queue_not_full ; //!_stall && !_mem_busy;
 // assign _pc = _next_pc;
 //adder若stall则计算_jalr_rd
+
+wire _debug_000=_pc==32'h64;
 endmodule

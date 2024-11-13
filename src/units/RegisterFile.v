@@ -52,7 +52,7 @@ always @(posedge clk_in) begin:MainBlock
             _rf_msg_ready <= 1;
             _rf_msg_rob_id <= _rob_commit_rob_id;
             _rf_msg_value <= _rob_commit_value;
-            if(dependency[_rob_commit_register_id] == _rob_commit_rob_id && _rob_launch_register_id!=_rob_commit_register_id) begin
+            if(dependency[_rob_commit_register_id] == _rob_commit_rob_id && (!_rob_launch_ready || _rob_launch_register_id!=_rob_commit_register_id)) begin
                 dependency[_rob_commit_register_id] <= 0;
             end
         end
@@ -97,5 +97,37 @@ wire [31:0]  _debug_t3 = registers[28];
 wire [31:0]  _debug_t4 = registers[29];
 wire [31:0]  _debug_t5 = registers[30];
 wire [31:0]  _debug_t6 = registers[31];
+
+wire [4:0] _debug_dep_x0 = dependency[0];
+wire [4:0] _debug_dep_ra = dependency[1];
+wire [4:0] _debug_dep_sp = dependency[2];
+wire [4:0]  _debug_dep_t0 = dependency[5];
+wire [4:0]  _debug_dep_t1 = dependency[6];
+wire [4:0]  _debug_dep_t2 = dependency[7];
+wire [4:0]  _debug_dep_s0 = dependency[8];
+wire [4:0]  _debug_dep_s1 = dependency[9];
+wire [4:0]  _debug_dep_a0 = dependency[10];
+wire [4:0]  _debug_dep_a1 = dependency[11];
+wire [4:0]  _debug_dep_a2 = dependency[12];
+wire [4:0]  _debug_dep_a3 = dependency[13];
+wire [4:0]  _debug_dep_a4 = dependency[14];
+wire [4:0]  _debug_dep_a5 = dependency[15];
+wire [4:0]  _debug_dep_a6 = dependency[16];
+wire [4:0]  _debug_dep_a7 = dependency[17];
+wire [4:0]  _debug_dep_s2 = dependency[18];
+wire [4:0]  _debug_dep_s3 = dependency[19];
+wire [4:0]  _debug_dep_s4 = dependency[20];
+wire [4:0]  _debug_dep_s5 = dependency[21];
+wire [4:0]  _debug_dep_s6 = dependency[22];
+wire [4:0]  _debug_dep_s7 = dependency[23];
+wire [4:0]  _debug_dep_s8 = dependency[24];
+wire [4:0]  _debug_dep_s9 = dependency[25];
+wire [4:0]  _debug_dep_s10 = dependency[26];
+wire [4:0]  _debug_dep_s11 = dependency[27];
+wire [4:0]  _debug_dep_t3 = dependency[28];
+wire [4:0]  _debug_dep_t4 = dependency[29];
+wire [4:0]  _debug_dep_t5 = dependency[30];
+wire [4:0]  _debug_dep_t6 = dependency[31];
+
 
 endmodule

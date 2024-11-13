@@ -75,7 +75,7 @@ wire _queue_full;
 reg[31:0] inst_queue[0:31];
 reg[31:0] addr_queue[0:31];
 reg[4:0] head,tail,size;
-assign _queue_full=size==32;
+assign _queue_full=size==31||(size==30 && _inst_ready_in);
 always @(posedge clk_in) begin
     if(rst_in) begin
         head <= 0;
@@ -92,9 +92,16 @@ always @(posedge clk_in) begin
             inst_queue[tail]<=_inst_in;
             addr_queue[tail]<=_inst_addr;
             tail<=tail==31?0:tail+1;
-            size<=size+1;
-            end if(_pop_valid)begin
+            // size<=size+1;
+            end 
+            if(_pop_valid)begin
                 head<=head==31?0:head+1;
+                // size<=size-1;
+            end
+            if(_inst_ready_in && !_pop_valid)begin
+                size<=size+1;
+            end
+            else if(!_inst_ready_in && _pop_valid)begin
                 size<=size-1;
             end
         end
@@ -145,9 +152,9 @@ assign _rs_rob_id=_rob_tail_id;
 assign _rs_r1=(opcode == 7'b1101111 || opcode==7'b0010111) ? addr_queue[head]:_rob_register_dep_1?0:_rob_register_value_1;
 assign _rs_r2=_rob_register_dep_2?0:_rob_register_value_2;
 assign _rs_imm=(opcode == 7'b1100011) ? immB : (opcode == 7'b1101111) ? {29'b0,3'd4} : (opcode == 7'b1100111) ? immJalr : (opcode == 7'b0000011 || opcode == 7'b0010011) ? immI :(opcode==7'b0010111)?immU: immS;
-assign _rs_has_dep1=_need_rs1?(_rob_register_dep_1):1'b0;
+assign _rs_has_dep1=_need_rs1?(_rob_register_dep_1!=0):1'b0;
 assign _rs_dep1=_rs_has_dep1?_rob_register_dep_1:5'b0;
-assign _rs_has_dep2=_need_rs2?(_rob_register_dep_2):1'b0;
+assign _rs_has_dep2=_need_rs2?(_rob_register_dep_2!=0):1'b0;
 assign _rs_dep2=_rs_has_dep2?_rob_register_dep_2:5'b0;
 
 //LoadStoreBuffer
@@ -164,9 +171,9 @@ assign _lsb_rs_r1=_rob_register_dep_1?0:_rob_register_value_1;
 assign _lsb_rs_sv=_rob_register_dep_2?0:_rob_register_value_2;
 assign _lsb_rs_imm=(opcode == 7'b0000011) ? immI :
                    (opcode == 7'b0100011) ? immS : 32'b0; 
-assign _lsb_rs_has_dep1=_need_rs1?(_rob_register_dep_1):1'b0;
+assign _lsb_rs_has_dep1=_need_rs1?(_rob_register_dep_1!=0):1'b0;
 assign _lsb_rs_dep1=_lsb_rs_has_dep1?_rob_register_dep_1:5'b0;
-assign _lsb_rs_has_dep2=_need_rs2?(_rob_register_dep_2):1'b0;
+assign _lsb_rs_has_dep2=_need_rs2?(_rob_register_dep_2!=0):1'b0;
 assign _lsb_rs_dep2=_lsb_rs_has_dep2?_rob_register_dep_2:5'b0;
 
 endmodule

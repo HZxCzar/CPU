@@ -21,7 +21,7 @@ module  MemControl(
     input wire                  _stall_set,
     input wire                  _InstFetcher_need_inst,
     //ROB
-    input wire             _stall_recover,
+    input wire                  _stall_recover,
 
     //LSB
     input wire [1:0]            _work_type,
@@ -32,6 +32,33 @@ module  MemControl(
     output wire                 _lsb_mem_ready_Mem2LoadStoreBuffer,
     output wire [31:0]          _data_out_Mem2LoadStoreBuffer
 );
+wire _ICache_ready;
+wire [31:0] _ICache_output;
+wire [31:0] _ICache_addr;
+wire _mem_ready;
+wire [15:0] _mem_inst_in;
+wire _flush;
+
+assign _mem_ready=(work_on_mode==2'b11) && waiter==0 && !_flush;
+assign _mem_inst_in={mem_din,data_in[1]};
+
+ICache cache(
+    .clk_in(clk_in),
+    .rst_in(rst_in),
+    .rdy_in(rdy_in),
+    ._pc_Fetcher2Mem(_pc_Fetcher2Mem),
+    ._stall_set(_stall_set),
+    ._InstFetcher_need_inst(_InstFetcher_need_inst),
+    ._stall_recover(_stall_recover),
+    ._stall(_stall),
+    ._mem_ready(_mem_ready),
+    ._mem_inst_in(_mem_inst_in),
+    ._ICache_ready(_ICache_ready),
+    ._ICache_output(_ICache_output),
+    ._ICache_addr(_ICache_addr),
+    ._flush(_flush)
+);
+
 reg _stall;
 reg [1:0] work_on_mode;
 reg [2:0] waiter;
@@ -53,8 +80,11 @@ always @(posedge clk_in) begin
         data_in[2]<=0;
         data_in[3]<=0;
     end else if(rdy_in)begin
-        if(waiter!=0)begin
-            if(waiter!=4)begin
+        if(waiter!=0 && !(_flush && work_on_mode==2'b11))begin
+            // if(_flush && work_on_mode==2'b11)begin
+            //     waiter<=0;
+            // end
+            if(adder!=0)begin
             data_in[waiter]<=mem_din;
             end
             adder<=adder+1;
@@ -73,16 +103,22 @@ always @(posedge clk_in) begin
             waiter<=_work_type+1;
             addr<=_addr_LoadStoreBuffer2Mem;
         end
-        else if(_InstFetcher_need_inst && !_stall_set && (!_stall || _stall_recover))begin
+        else begin
             work_on_mode <= 2'b11;
             adder<=0;
-            waiter<=4;
-            addr<=_pc_Fetcher2Mem;
+            waiter<=2;
+            addr<=_ICache_addr;
         end
-        else begin
-            adder<=0;
-            work_on_mode <= 2'b00;
-        end
+        // else if(_InstFetcher_need_inst && !_stall_set && (!_stall || _stall_recover))begin
+        //     work_on_mode <= 2'b11;
+        //     adder<=0;
+        //     waiter<=4;
+        //     addr<=_pc_Fetcher2Mem;
+        // end
+        // else begin
+        //     adder<=0;
+        //     work_on_mode <= 2'b00;
+        // end
     end
 end
 assign mem_dout=(work_on_mode==2'b01)?(adder==3)?_data_in_LoadStoreBuffer2Mem[31:24]:(adder==2)?_data_in_LoadStoreBuffer2Mem[23:16]:(adder==1)?_data_in_LoadStoreBuffer2Mem[15:8]:(adder==0)?_data_in_LoadStoreBuffer2Mem[7:0]:0:0;
@@ -90,7 +126,9 @@ assign mem_wr=(work_on_mode==2'b01 && waiter!=0)?1'b1:0;
 assign mem_a=addr;
 assign _lsb_mem_ready_Mem2LoadStoreBuffer=(work_on_mode==2'b01 || work_on_mode==2'b10) && waiter==0;
 assign _data_out_Mem2LoadStoreBuffer={mem_din,data_in[1],data_in[2],data_in[3]};
-assign _inst_ready_in_Mem2Fetcher=(work_on_mode==2'b11) && waiter==0;
-assign _inst_in_Mem2Fetcher={mem_din,data_in[1],data_in[2],data_in[3]};
+// assign _inst_ready_in_Mem2Fetcher=(work_on_mode==2'b11) && waiter==0;
+assign _inst_ready_in_Mem2Fetcher=_ICache_ready;
+// assign _inst_in_Mem2Fetcher={mem_din,data_in[1],data_in[2],data_in[3]};
+assign _inst_in_Mem2Fetcher=_ICache_output;
 assign _mem_busy=waiter!=0;
 endmodule
