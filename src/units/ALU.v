@@ -50,7 +50,7 @@ assign _cdb_rob_id = alu_rob_id;
 assign _cdb_value = (alu_type==7'b0110011)?((alu_op==4'd0)?alu_v1+alu_v2:(alu_op==4'd1)?alu_v1-alu_v2:(alu_op==4'd2)?alu_v1 & alu_v2:(alu_op==4'd3)?alu_v1 | alu_v2:(alu_op==4'd4)?alu_v1 ^ alu_v2:(alu_op==4'd5)?alu_v1<<alu_v2:(alu_op==4'd6)?$unsigned(alu_v1)>>$unsigned(alu_v2):(alu_op==4'd7)?$signed(alu_v1)>>>$signed(alu_v2):(alu_op==4'd8)?($signed(alu_v1) < $signed(alu_v2)):($unsigned(alu_v1)>$unsigned(alu_v2))):
                     (alu_type==7'b0010011)?((alu_op==4'd0)?alu_v1+alu_v2:(alu_op==4'd1)?alu_v1 & alu_v2:(alu_op==4'd2)?alu_v1 | alu_v2:(alu_op==4'd3)?alu_v1 ^ alu_v2:(alu_op==4'd4)?alu_v1<<alu_v2:(alu_op==4'd5)?$unsigned(alu_v1)>>$unsigned(alu_v2):(alu_op==4'd6)?$signed(alu_v1)>>>$signed(alu_v2):(alu_op==4'd7)?($signed(alu_v1) < $signed(alu_v2)):($unsigned(alu_v1)>$unsigned(alu_v2))):
                     (alu_type==7'b1100011)?((alu_op==4'd0)?alu_v1==alu_v2:(alu_op==4'd1)?$signed(alu_v1)>=$signed(alu_v2):(alu_op==4'd2)?$unsigned(alu_v1)>=$unsigned(alu_v2):(alu_op==4'd3)?$signed(alu_v1)<$signed(alu_v2):(alu_op==4'd4)?$unsigned(alu_v1)<$unsigned(alu_v2):alu_v1!=alu_v2):
-                    (alu_type==7'b1101111 || alu_type==7'b1100111)?alu_v1+alu_v2:
+                    (alu_type==7'b1101111 || alu_type==7'b1100111 || alu_type==7'b0010111)?alu_v1+alu_v2:
                     32'b0;
 //SignExtend?
 endmodule

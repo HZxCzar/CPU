@@ -25,7 +25,7 @@ wire[31:0] auipc_imm={_inst_in[31:12],12'b0};
 wire predict = 1'b1;
 pc_adder adder(
     ._pc(_br_rob?_rob_new_pc:_inst_addr),
-    ._imm(_br_rob?_rob_imm:(!_inst_ready_in?32'd0:opcode==OPJAL?jal_imm:opcode==OPJALR?32'd4:opcode==OPAUIPC?auipc_imm:opcode==OPBRANCH?predict?br_imm:32'd4:32'd4)),
+    ._imm(_br_rob?_rob_imm:(!_inst_ready_in?32'd0:opcode==OPJAL?jal_imm:opcode==OPJALR?32'd4:opcode==OPBRANCH?predict?br_imm:32'd4:32'd4)),
     ._next_pc(_next_pc)
 );
 assign _stall = !_br_rob && _inst_ready_in && opcode==OPJALR;

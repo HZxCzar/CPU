@@ -120,6 +120,7 @@ wire[19:15] rs1=inst_queue[head][19:15];
 wire[24:20] rs2=inst_queue[head][24:20];
 wire[31:0] immB={{20{inst_queue[head][31]}},inst_queue[head][7],inst_queue[head][30:25],inst_queue[head][11:8],1'b0};
 wire[31:0] immI={{20{inst_queue[head][31]}},inst_queue[head][31:20]};
+wire[31:0] shamt={{27{inst_queue[head][24]}},inst_queue[head][24:20]};
 wire[31:0] immU={inst_queue[head][31:12],{12{1'b0}}};
 wire[31:0] immS={{20{inst_queue[head][31]}},inst_queue[head][31:25],inst_queue[head][11:7]};
 wire[31:0] immJal={{12{inst_queue[head][31]}},inst_queue[head][19:12],inst_queue[head][20],inst_queue[head][30:21],1'b0};
@@ -151,7 +152,7 @@ assign _rs_op=(opcode==7'b0110011)?((funct3==3'b000)?((funct7==7'b0)?4'd0:4'd1):
 assign _rs_rob_id=_rob_tail_id;
 assign _rs_r1=(opcode == 7'b1101111 || opcode==7'b0010111) ? addr_queue[head]:_rob_register_dep_1?0:_rob_register_value_1;
 assign _rs_r2=_rob_register_dep_2?0:_rob_register_value_2;
-assign _rs_imm=(opcode == 7'b1100011) ? immB : (opcode == 7'b1101111) ? {29'b0,3'd4} : (opcode == 7'b1100111) ? immJalr : (opcode == 7'b0000011 || opcode == 7'b0010011) ? immI :(opcode==7'b0010111)?immU: immS;
+assign _rs_imm=(opcode == 7'b1100011) ? immB : (opcode == 7'b1101111) ? {29'b0,3'd4} : (opcode == 7'b1100111) ? immJalr : (opcode == 7'b0010011) ?((funct3==3'b001 || funct3==3'b101)? shamt:immI ):(opcode==7'b0010111)?immU: immS;
 assign _rs_has_dep1=_need_rs1?(_rob_register_dep_1!=0):1'b0;
 assign _rs_dep1=_rs_has_dep1?_rob_register_dep_1:5'b0;
 assign _rs_has_dep2=_need_rs2?(_rob_register_dep_2!=0):1'b0;
