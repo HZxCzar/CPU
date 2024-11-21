@@ -22,6 +22,7 @@ module ReorderBuffer(
     input wire [4:0]            _rob_rd,
     input wire [31:0]           _rob_value,
     input wire [31:0]           _rob_jump_imm,
+    input wire                  _rvc_rob,
     //Decoder outputs
     output  wire                _rob_full,
     output  wire [4:0]          _rob_tail_id,
@@ -78,6 +79,7 @@ reg[4:0] rob_rd[1:31];
 reg[31:0] rob_value[1:31];
 reg[31:0] rob_jump_imm[1:31];
 reg[1:0] rob_status[1:31];
+reg      rvc[1:31];
 
 assign _rob_full=size==5'd31;
 assign _rob_tail_id=tail;
@@ -108,8 +110,9 @@ always @(posedge clk_in)begin:MainBlock
         rob_value[i]<=0;
         rob_jump_imm[i]<=0;
         rob_status[i]<=0;
-        _inst_first_clk<=0;
+        rvc[i]<=0;
         end
+        _inst_first_clk<=0;
     end else if(_clear && rdy_in)begin
         head<=1;
         tail<=1;
@@ -123,6 +126,7 @@ always @(posedge clk_in)begin:MainBlock
         rob_value[i]<=0;
         rob_jump_imm[i]<=0;
         rob_status[i]<=0;
+        rvc[i]<=0;
         end
     end else if(rdy_in)begin
         if(_rob_ready)begin
@@ -133,6 +137,7 @@ always @(posedge clk_in)begin:MainBlock
             rob_value[tail]<=_rob_value;
             rob_jump_imm[tail]<=_rob_jump_imm;
             rob_status[tail]<=(_rob_type==7'b0110111)?2'b10:2'b0;
+            rvc[tail]<=_rvc_rob;
             tail<=(tail==5'd31)?1:tail+1;
             // size<=size+1;
         end
@@ -192,13 +197,13 @@ assign _br_rob=(_clear || (commit_valid && rob_type[head]==7'b1100111));
 assign _clear=commit_valid && (rob_type[head]==7'b1100011) && (rob_rd[head][0]!=rob_value[head][0]);
 assign _stall=commit_valid && (rob_type[head]==7'b1100111);
 assign _rob_new_pc=(rob_type[head]==7'b1100111)?32'b0:inst_addr[head];
-assign _rob_imm=(rob_type[head]==7'b1100111 || rob_value[head][0]==1)?rob_jump_imm[head]:4;
+assign _rob_imm=(rob_type[head]==7'b1100111 || rob_value[head][0]==1)?rob_jump_imm[head]:rvc[head]?32'd2:32'd4;
 assign _store_ready=rob_type[head]==7'b0100011 && _inst_first_clk;
 
 wire[31:0] _debug_inst_addr=inst_addr[head];
 wire[6:0] _debug_rob_type=rob_type[head];
-wire _debug_000=_debug_inst_addr==32'h1b4;
-wire _debug_0000=_debug_inst_addr==32'h244;
+
+wire _debug_queens=_debug_inst_addr==32'hbe||_debug_inst_addr==32'hd0 ||_debug_inst_addr==32'hd4;
 
 wire [31:0] _debug_addr_1=inst_addr[1];
 wire [31:0] _debug_addr_2=inst_addr[2];

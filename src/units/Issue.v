@@ -10,6 +10,7 @@ module Issue(
     input  wire                 _inst_ready_in,
     input  wire [31:0]          _inst_addr,
     input  wire [31:0]          _jalr_rd, 
+    input  wire                 _rvc,
     output wire                 _InstFetcher_need_inst,
 
     //ROB outputs with dependencies
@@ -31,6 +32,7 @@ module Issue(
     output wire [4:0]            _rob_rd,
     output wire [31:0]           _rob_value,
     output wire [31:0]           _rob_jump_imm,
+    output wire                  _rvc_rob,
 
 
     //ReservationStation inputs
@@ -74,6 +76,7 @@ wire _pop_valid;
 wire _queue_full;
 reg[31:0] inst_queue[0:31];
 reg[31:0] addr_queue[0:31];
+reg       rvc[0:31];
 reg[4:0] head,tail,size;
 assign _queue_full=size==31||(size==30 && _inst_ready_in);
 always @(posedge clk_in) begin
@@ -91,6 +94,7 @@ always @(posedge clk_in) begin
             if(_inst_ready_in)begin
             inst_queue[tail]<=_inst_in;
             addr_queue[tail]<=_inst_addr;
+            rvc[tail]<=_rvc;
             tail<=tail==31?0:tail+1;
             // size<=size+1;
             end 
@@ -115,12 +119,12 @@ assign _pop_valid = size!=0 && !_rob_full && !_rs_full && !_lsb_full && !_lsb_rs
 wire[6:0] opcode=inst_queue[head][6:0];
 wire[11:7] rd=inst_queue[head][11:7];
 wire[14:12] funct3=inst_queue[head][14:12];
-wire[31:25] funct7=inst_queue[head][31:25];
+wire[31:25] funct7={inst_queue[head][31:27],2'b0};
 wire[19:15] rs1=inst_queue[head][19:15];
 wire[24:20] rs2=inst_queue[head][24:20];
 wire[31:0] immB={{20{inst_queue[head][31]}},inst_queue[head][7],inst_queue[head][30:25],inst_queue[head][11:8],1'b0};
 wire[31:0] immI={{20{inst_queue[head][31]}},inst_queue[head][31:20]};
-wire[31:0] shamt={{27{inst_queue[head][24]}},inst_queue[head][24:20]};
+wire[31:0] shamt=inst_queue[head][26]?{26'b0,inst_queue[head][25:20]}:{{27{inst_queue[head][24]}},inst_queue[head][24:20]};
 wire[31:0] immU={inst_queue[head][31:12],{12{1'b0}}};
 wire[31:0] immS={{20{inst_queue[head][31]}},inst_queue[head][31:25],inst_queue[head][11:7]};
 wire[31:0] immJal={{12{inst_queue[head][31]}},inst_queue[head][19:12],inst_queue[head][20],inst_queue[head][30:21],1'b0};
@@ -133,8 +137,8 @@ assign _rob_type=opcode;
 assign _rob_inst_addr=addr_queue[head];
 assign _rob_rd = (opcode == 7'b1100011) ? {4'b0000, predict} : (opcode == 7'b0100011) ? 5'b00000 : rd;
 assign _rob_value=(opcode==7'b0110111)?immU:(opcode==7'b1100111)?_jalr_rd:{31{1'b0}};
-assign _rob_jump_imm=(opcode == 7'b1100011) ? immB : (opcode==7'b1101111)?immJal:32'b0;//immJal未来在ROB用不到,只是记录
-
+assign _rob_jump_imm=(opcode == 7'b1100011) ? immB : (opcode==7'b1101111)?(rvc[head]?32'd2:32'd4):32'b0;//immJal未来在ROB用不到,只是记录
+assign _rvc_rob=rvc[head];
 
 // assign _get_register_id_dependency_1=rs1;
 // assign _get_register_id_dependency_2=rs2;
@@ -152,7 +156,7 @@ assign _rs_op=(opcode==7'b0110011)?((funct3==3'b000)?((funct7==7'b0)?4'd0:4'd1):
 assign _rs_rob_id=_rob_tail_id;
 assign _rs_r1=(opcode == 7'b1101111 || opcode==7'b0010111) ? addr_queue[head]:_rob_register_dep_1?0:_rob_register_value_1;
 assign _rs_r2=_rob_register_dep_2?0:_rob_register_value_2;
-assign _rs_imm=(opcode == 7'b1100011) ? immB : (opcode == 7'b1101111) ? {29'b0,3'd4} : (opcode == 7'b1100111) ? immJalr : (opcode == 7'b0010011) ?((funct3==3'b001 || funct3==3'b101)? shamt:immI ):(opcode==7'b0010111)?immU: immS;
+assign _rs_imm=(opcode == 7'b1100011) ? immB : (opcode == 7'b1101111) ? rvc[head]?{29'b0,3'd2}:{29'b0,3'd4} : (opcode == 7'b1100111) ? immJalr : (opcode == 7'b0010011) ?((funct3==3'b001 || funct3==3'b101)? shamt:immI ):(opcode==7'b0010111)?immU: immS;
 assign _rs_has_dep1=_need_rs1?(_rob_register_dep_1!=0):1'b0;
 assign _rs_dep1=_rs_has_dep1?_rob_register_dep_1:5'b0;
 assign _rs_has_dep2=_need_rs2?(_rob_register_dep_2!=0):1'b0;

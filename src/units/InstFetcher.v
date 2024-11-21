@@ -42,6 +42,7 @@ module InstFetcher(
     output wire [4:0]           _rob_rd,
     output wire [31:0]          _rob_value,
     output wire [31:0]          _rob_jump_imm,
+    output wire                 _rvc_rob,
 
     //ReservationStation inputs
     input  wire                 _rs_full,
@@ -95,18 +96,23 @@ Decoder dc(
     ._inst_in(_inst_in),
     ._inst_ready_in(_inst_ready_in),
     ._inst_addr(_pc),
-    ._next_pc(_next_pc)
+    ._next_pc(_next_pc),
+    ._formalized_inst(_formalized_inst),
+    ._rvc(_rvc)
 );
+wire[31:0] _formalized_inst;
+wire _rvc;
 
 Issue launcher(
     .clk_in(clk_in),
     .rst_in(rst_in),
     .rdy_in(rdy_in),
     ._clear(_clear),
-    ._inst_in(_inst_in),
+    ._inst_in(_formalized_inst),
     ._inst_ready_in(_inst_ready_in),
     ._inst_addr(_pc),
     ._jalr_rd(_jalr_rd),
+    ._rvc(_rvc),
     ._InstFetcher_need_inst(_queue_not_full),
     ._get_register_status_1(_get_register_status_1),
     ._get_register_status_2(_get_register_status_2),
@@ -122,6 +128,7 @@ Issue launcher(
     ._rob_rd(_rob_rd),
     ._rob_value(_rob_value),
     ._rob_jump_imm(_rob_jump_imm),
+    ._rvc_rob(_rvc_rob),
     ._rs_full(_rs_full),
     ._rs_ready(_rs_ready),
     ._rs_type(_rs_type),

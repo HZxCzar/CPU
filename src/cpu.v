@@ -44,6 +44,8 @@ module cpu(
 wire _clear;
 assign dbgreg_dout = 32'b0;
 
+wire _rvc_rob;
+
 //CDB
 wire _cdb_ready;
 wire [4:0]          _cdb_rob_id;
@@ -241,6 +243,7 @@ InstFetcher Fetcher(
   ._rob_rd(_rob_rd_ROB2Fetcher),
   ._rob_value(_rob_value_ROB2Fetcher),
   ._rob_jump_imm(_rob_jump_imm_ROB2Fetcher),
+  ._rvc_rob(_rvc_rob),
   ._rs_full(_rs_full_Fetcher2ReservationStation),
   ._rs_ready(_rs_ready_ReservationStation2Fetcher),
   ._rs_type(_rs_type_ReservationStation2Fetcher),
@@ -412,6 +415,7 @@ ReorderBuffer ROB(
   ._rob_rd(_rob_rd_ROB2Fetcher),
   ._rob_value(_rob_value_ROB2Fetcher),
   ._rob_jump_imm(_rob_jump_imm_ROB2Fetcher),
+  ._rvc_rob(_rvc_rob),
   ._rob_full(_rob_full_Fetcher2ROB),
   ._rob_tail_id(_rob_tail_id_Fetcher2ROB),
   ._br_rob(_br_rob_ROB2Fetcher),
