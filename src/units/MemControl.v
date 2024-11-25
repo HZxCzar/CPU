@@ -5,7 +5,7 @@ module  MemControl(
 
     //with Memory
     input  wire [ 7:0]           mem_din,		// data input bus
-    output wire [ 7:0]           mem_dout,		// data output bus
+    output reg [ 7:0]           mem_dout,		// data output bus
     output wire [31:0]           mem_a,			// address bus (only 17:0 is used)
     output wire                  mem_wr,			// write/read signal (1 for write)
 	
@@ -84,6 +84,17 @@ always @(posedge clk_in) begin
             // if(_flush && work_on_mode==2'b11)begin
             //     waiter<=0;
             // end
+            if(work_on_mode==2'b01)begin
+                if(adder==0)begin
+                    mem_dout<=_data_in_LoadStoreBuffer2Mem[15:8];
+                end
+                else if(adder==1)begin
+                    mem_dout<=_data_in_LoadStoreBuffer2Mem[23:16];
+                end
+                else begin
+                    mem_dout<=_data_in_LoadStoreBuffer2Mem[31:24];
+                end
+            end
             if(adder!=0)begin
             data_in[waiter]<=mem_din;
             end
@@ -94,7 +105,7 @@ always @(posedge clk_in) begin
         else if(_lsb_mem_ready_LoadStoreBuffer2Mem)begin//&& !write_waiter
             if(_r_nw_in_LoadStoreBuffer2Mem)begin
                 work_on_mode <= 2'b01;
-                // write_waiter<=1;
+                mem_dout<=_data_in_LoadStoreBuffer2Mem[7:0];
             end
             else begin
                 work_on_mode <= 2'b10;
@@ -121,7 +132,7 @@ always @(posedge clk_in) begin
         // end
     end
 end
-assign mem_dout=(work_on_mode==2'b01)?(adder==3)?_data_in_LoadStoreBuffer2Mem[31:24]:(adder==2)?_data_in_LoadStoreBuffer2Mem[23:16]:(adder==1)?_data_in_LoadStoreBuffer2Mem[15:8]:(adder==0)?_data_in_LoadStoreBuffer2Mem[7:0]:0:0;
+// assign mem_dout=(work_on_mode==2'b01)?(adder==3)?_data_in_LoadStoreBuffer2Mem[31:24]:(adder==2)?_data_in_LoadStoreBuffer2Mem[23:16]:(adder==1)?_data_in_LoadStoreBuffer2Mem[15:8]:(adder==0)?_data_in_LoadStoreBuffer2Mem[7:0]:0:0;
 assign mem_wr=(work_on_mode==2'b01 && waiter!=0)?1'b1:0;
 assign mem_a=addr;
 assign _lsb_mem_ready_Mem2LoadStoreBuffer=(work_on_mode==2'b01 || work_on_mode==2'b10) && waiter==0;
