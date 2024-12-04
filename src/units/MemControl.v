@@ -102,7 +102,7 @@ always @(posedge clk_in) begin
             waiter<=waiter-1;
             addr<=addr+1;
         end
-        else if(_lsb_mem_ready_LoadStoreBuffer2Mem && !(_addr_LoadStoreBuffer2Mem==32'h30000 && io_buffer_full))begin//&& !write_waiter
+        else if(_lsb_mem_ready_LoadStoreBuffer2Mem)begin// && !(_addr_LoadStoreBuffer2Mem==32'h30000 && io_buffer_full)
             if(_r_nw_in_LoadStoreBuffer2Mem)begin
                 work_on_mode <= 2'b01;
                 mem_dout<=_data_in_LoadStoreBuffer2Mem[7:0];

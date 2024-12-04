@@ -19,7 +19,7 @@ module ICache(
     output wire [31:0]           _ICache_addr,
     output reg                  _flush
 );
-// reg [31:0] addr;
+
 reg [31:0] _addr;
 assign _ICache_addr=(ready && !hit_1 && !_remaking)?addr1:(ready && !hit_2 && !_remaking)?addr2:(_mem_ready)?_addr+2:_addr;
 reg       _remaking;
@@ -88,9 +88,9 @@ always @(posedge clk_in) begin:MainBlock
             if(_mem_ready)begin
                 if(_addr[17:8]!=tag[_index])begin
                     tag[_index]<=_addr[17:8];
-                    for(i=_index*16;i<(_index+1)*16;i=i+1)begin
-                        if(i!=_offset)begin
-                            line[i]<=0;
+                    for(i=0;i<16;i=i+1)begin
+                        if((16*_index+i)!=_offset)begin
+                            line[16*_index+i]<=0;
                         end
                     end
                 end
