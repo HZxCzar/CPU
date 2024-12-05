@@ -42,7 +42,7 @@ module ReservationStation(
     input  wire [31:0]          _rf_msg_value,
 
     //ALU inputs
-    input wire                  _alu_full,
+    // input wire                  _alu_full,
     //ALU outputs
     output wire                 _alu_ready,
     output wire [4:0]           _alu_rob_id,

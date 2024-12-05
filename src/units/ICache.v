@@ -22,12 +22,17 @@ module ICache(
 
 reg [31:0] _addr;
 assign _ICache_addr=(ready && !hit_1 && !_remaking)?addr1:(ready && !hit_2 && !_remaking)?addr2:(_mem_ready)?_addr+2:_addr;
-reg       _remaking;
+reg    _remaking;
 reg [9:0] tag[0:7];
 reg line[0:127];
 reg [15:0] cache[0:127];
 wire [31:0] addr1=_pc_Fetcher2Mem;
-wire [31:0] addr2=_pc_Fetcher2Mem+2;
+wire [31:0] addr2;
+//=_pc_Fetcher2Mem+2;
+icache_adder icache_adder(
+    ._pc(_pc_Fetcher2Mem),
+    ._next_pc(addr2)
+);
 
 wire[2:0] _index=_addr[7:5];
 wire[6:0] _offset=_addr[7:1];
@@ -36,12 +41,6 @@ wire[2:0] _index_1=addr1[7:5];
 wire[2:0] _index_2=addr2[7:5];
 wire[6:0] _offset_1=addr1[7:1];
 wire[6:0] _offset_2=addr2[7:1];
-wire _debug_line_1=line[_offset_1];
-wire _debug_line_2=line[_offset_2];
-wire[9:0] _debug_tag_1=tag[_index_1];
-wire[9:0] _debug_tag_2=tag[_index_2];
-wire[15:0] _debug_cache_1=cache[7'b1010110];
-wire[15:0] _debug_cache_2=cache[7'b1010111];
 wire hit_1=tag[_index_1]==addr1[17:8] && line[_offset_1];
 wire hit_2=tag[_index_2]==addr2[17:8] && line[_offset_2];
 // assign _ICache_output={cache[addr2[7:1]],cache[addr1[7:1]]};
@@ -105,4 +104,11 @@ always @(posedge clk_in) begin:MainBlock
         end
     end
 end
+endmodule
+
+module icache_adder(
+    input wire [31:0] _pc,
+    output wire [31:0] _next_pc
+);
+assign _next_pc = _pc + 2;
 endmodule

@@ -186,14 +186,14 @@ always @(posedge clk_in)begin:MainBlock
         end
     end
 end
-wire [4:0] next_head=head==5'd31?5'd1:head+1;
+wire [4:0] next_head=(head==5'd31)?5'd1:head+1;
 wire commit_valid=busy[head] && rob_status[head]==2'b10;
 wire _commit_has_rd=(rob_type[head]==7'b0110011||rob_type[head]==7'b0010011||rob_type[head]==7'b0000011||rob_type[head]==7'b1101111||rob_type[head]==7'b1100111||rob_type[head]==7'b0010111||rob_type[head]==7'b0110111);
 assign _rf_commit_ready=commit_valid && _commit_has_rd;
 assign _rf_commit_rob_id=head;
 assign _rf_commit_register_id=rob_rd[head];
 assign _rf_commit_value=rob_value[head];
-assign _br_rob=(_clear || (commit_valid && rob_type[head]==7'b1100111));
+assign _br_rob=(_clear || _stall);
 assign _clear=commit_valid && (rob_type[head]==7'b1100011) && (rob_rd[head][0]!=rob_value[head][0]);
 assign _stall=commit_valid && (rob_type[head]==7'b1100111);
 assign _rob_new_pc=(rob_type[head]==7'b1100111)?32'b0:inst_addr[head];

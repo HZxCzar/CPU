@@ -63,8 +63,11 @@ assign _rvc=RVC;
 wire[3:0] pc_imm=RVC?32'd2:32'd4;
 assign _formalized_inst = RVC?((Ctype==2'd0)?_CLS:(Ctype==2'd1)?_CJ:(Ctype==2'd2)?_CB:(Ctype==2'd3)?_CI:_inst_in):_inst_in;
 pc_adder adder(
-    ._pc(_br_rob?_rob_new_pc:_inst_addr),
-    ._imm(_br_rob?_rob_imm:(!_inst_ready_in?32'd0:jal?jal_imm:jalr?pc_imm:branch?predict?br_imm:pc_imm:pc_imm)),
+    ._pc(_inst_addr),
+    ._imm((!_inst_ready_in?32'd0:jal?jal_imm:jalr?pc_imm:branch?predict?br_imm:pc_imm:pc_imm)),
+    ._rob_pc(_rob_new_pc),
+    ._rob_imm(_rob_imm),
+    ._rob(_br_rob),
     ._next_pc(_next_pc)
 );
 assign _stall = !_br_rob && _inst_ready_in && jalr;
@@ -73,7 +76,10 @@ endmodule
 module pc_adder(
     input wire [31:0] _pc,
     input wire [31:0] _imm,
+    input wire [31:0] _rob_pc,
+    input wire [31:0] _rob_imm,
+    input wire _rob,
     output wire [31:0] _next_pc
 );
-assign _next_pc = _pc + _imm;
+assign _next_pc =(_rob)?_rob_pc+_rob_imm: _pc + _imm;
 endmodule

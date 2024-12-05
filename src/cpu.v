@@ -132,7 +132,7 @@ wire [4:0] _rf_msg_rob_id_RS2RegisterFile;
 wire [31:0] _rf_msg_value_RS2RegisterFile;
 
 //ReservationStation & ALU
-wire _alu_full_ReservationStation2ALU;
+// wire _alu_full_ReservationStation2ALU;
 wire _alu_ready_ALU2ReservationStation;
 wire [4:0] _alu_rob_id_ALU2ReservationStation;
 wire [6:0] _alu_type_ALU2ReservationStation;
@@ -306,7 +306,7 @@ ReservationStation RS(
   ._rf_msg_ready(_rf_msg_ready_RS2RegisterFile),
   ._rf_msg_rob_id(_rf_msg_rob_id_RS2RegisterFile),
   ._rf_msg_value(_rf_msg_value_RS2RegisterFile),
-  ._alu_full(_alu_full_ReservationStation2ALU),
+  // ._alu_full(_alu_full_ReservationStation2ALU),
   ._alu_ready(_alu_ready_ALU2ReservationStation),
   ._alu_rob_id(_alu_rob_id_ALU2ReservationStation),
   ._alu_type(_alu_type_ALU2ReservationStation),
@@ -326,7 +326,7 @@ ALU CommonALU(
   ._alu_op(_alu_op_ALU2ReservationStation),
   ._alu_v1(_alu_v1_ALU2ReservationStation),
   ._alu_v2(_alu_v2_ALU2ReservationStation),
-  ._alu_full(_alu_full_ReservationStation2ALU),
+  // ._alu_full(_alu_full_ReservationStation2ALU),
   ._cdb_ready(_cdb_ready),
   ._cdb_rob_id(_cdb_rob_id),
   ._cdb_value(_cdb_value)
