@@ -84,6 +84,8 @@ module InstFetcher(
 reg[31:0] _pc;
 wire _queue_not_full;
 reg [31:0] _jalr_rd;
+wire[31:0] _formalized_inst;
+wire _rvc;
 Decoder dc(
     .clk_in(clk_in),
     .rst_in(rst_in),
@@ -100,8 +102,6 @@ Decoder dc(
     ._formalized_inst(_formalized_inst),
     ._rvc(_rvc)
 );
-wire[31:0] _formalized_inst;
-wire _rvc;
 
 Issue launcher(
     .clk_in(clk_in),

@@ -38,6 +38,7 @@ wire [31:0] _ICache_addr;
 wire _mem_ready;
 wire [15:0] _mem_inst_in;
 wire _flush;
+reg _stall;
 
 assign _mem_ready=(work_on_mode==2'b11) && waiter==0 && !_flush;
 assign _mem_inst_in={mem_din,data_in[1]};
@@ -58,8 +59,6 @@ ICache cache(
     ._ICache_addr(_ICache_addr),
     ._flush(_flush)
 );
-
-reg _stall;
 reg [1:0] work_on_mode;
 reg [2:0] waiter;
 reg [2:0] adder;
