@@ -94,9 +94,7 @@ always @(posedge clk_in) begin
                     mem_dout<=_data_in_LoadStoreBuffer2Mem[31:24];
                 end
             end
-            if(adder!=0)begin
             data_in[waiter]<=mem_din;
-            end
             adder<=adder+1;
             waiter<=waiter-1;
             addr<=addr+1;
@@ -142,5 +140,5 @@ assign _inst_ready_in_Mem2Fetcher=_ICache_ready;
 assign _inst_in_Mem2Fetcher=_ICache_output;
 assign _mem_busy=waiter!=0;
 
-wire _debug_mem_wirte=mem_a==32'h30000;
+// wire _debug_mem_wirte=mem_a==32'h30000;
 endmodule
