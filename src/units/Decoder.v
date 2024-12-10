@@ -59,27 +59,39 @@ wire [31:0] _CI=(Cop5==5'b01001)?{{7{_inst_in[12]}},_inst_in[6:2],5'd0,3'b0,_ins
 
 wire predict = 1'b1;
 wire RVC=_inst_in[1:0]!=2'b11;
+reg _keep;
+reg[31:0] _next_jump;
+wire[31:0] _next_step;
 assign _rvc=RVC;
 wire[3:0] pc_imm=RVC?32'd2:32'd4;
 assign _formalized_inst = RVC?((Ctype==2'd0)?_CLS:(Ctype==2'd1)?_CJ:(Ctype==2'd2)?_CB:(Ctype==2'd3)?_CI:_inst_in):_inst_in;
 pc_adder adder(
     ._pc(_inst_addr),
-    ._imm((!_inst_ready_in?32'd0:jal?jal_imm:jalr?pc_imm:branch?predict?br_imm:pc_imm:pc_imm)),
-    ._rob_pc(_rob_new_pc),
-    ._rob_imm(_rob_imm),
-    ._rob(_br_rob),
-    ._next_pc(_next_pc)
+    ._imm(((!_inst_ready_in || _keep)?32'd0:jal?jal_imm:jalr?pc_imm:branch?predict?br_imm:pc_imm:pc_imm)),
+    ._next_pc(_next_step)
 );
+assign _next_pc = (_keep)?_next_jump:_next_step;
 assign _stall = !_br_rob && _inst_ready_in && jalr;
+always @(posedge clk_in) begin
+    if(rst_in) begin
+        _keep <= 1'b0;
+    end
+    else begin
+        if(_br_rob)begin
+            _keep <= 1'b1;
+            _next_jump <= _rob_new_pc+_rob_imm;
+        end
+        else begin
+            _keep <= 1'b0;
+        end
+    end
+end
 endmodule
 
 module pc_adder(
     input wire [31:0] _pc,
     input wire [31:0] _imm,
-    input wire [31:0] _rob_pc,
-    input wire [31:0] _rob_imm,
-    input wire _rob,
     output wire [31:0] _next_pc
 );
-assign _next_pc =(_rob)?_rob_pc+_rob_imm: _pc + _imm;
+assign _next_pc =_pc + _imm;
 endmodule

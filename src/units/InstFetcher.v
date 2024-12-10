@@ -82,9 +82,11 @@ module InstFetcher(
     output wire [4:0]           _lsb_rs_dep2
 );
 reg[31:0] _pc;
+reg clear;
 wire _queue_not_full;
 reg [31:0] _jalr_rd;
 wire[31:0] _formalized_inst;
+wire _inst_ready_in_formalized=!clear && _inst_ready_in;
 wire _rvc;
 Decoder dc(
     .clk_in(clk_in),
@@ -96,7 +98,7 @@ Decoder dc(
     ._clear(_clear),
     ._stall(_stall),
     ._inst_in(_inst_in),
-    ._inst_ready_in(_inst_ready_in),
+    ._inst_ready_in(_inst_ready_in_formalized),
     ._inst_addr(_pc),
     ._next_pc(_next_pc),
     ._formalized_inst(_formalized_inst),
@@ -109,7 +111,7 @@ Issue launcher(
     .rdy_in(rdy_in),
     ._clear(_clear),
     ._inst_in(_formalized_inst),
-    ._inst_ready_in(_inst_ready_in),
+    ._inst_ready_in(_inst_ready_in_formalized),
     ._inst_addr(_pc),
     ._jalr_rd(_jalr_rd),
     ._rvc(_rvc),
@@ -164,6 +166,7 @@ always @(posedge clk_in) begin
         _jalr_rd <= 0;
         _pc <= 0;
     end else if(rdy_in)begin
+        clear<=_clear;
         if(_stall) begin
             _jalr_rd <= _next_pc;
         end else begin
