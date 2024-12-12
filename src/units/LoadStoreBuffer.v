@@ -83,10 +83,8 @@ always @(posedge clk_in) begin: MainBlock
                             3'b010: lsb_sv[i] <= _lsb_rs_st_value;
                             default: lsb_sv[i] <= 0;
                         endcase
-                        lsb_status[i][0] <= 1;
-                    end else begin
-                        lsb_status[i] <= 3;
                     end
+                    lsb_status[i][0] <= 1;
                 end
             end
         end
@@ -107,7 +105,7 @@ wire[2:0] _op_old=lsb_msg[head][2:0];
 wire [4:0] next_head = _pop_valid?head == 31 ? 0 : head + 1:head;
 wire[2:0] _op=lsb_msg[next_head][2:0];
 wire[1:0] _debug_lsb_status = lsb_status[head];
-assign _lsb_mem_ready = busy[next_head] && lsb_status[next_head]==3 && !_mem_busy;
+assign _lsb_mem_ready = busy[next_head] && ((lsb_msg[next_head][3]==0 && lsb_status[next_head][0]==1 && lsb_addr[next_head]!=32'h30000) || lsb_status[next_head]==3) && !_mem_busy;
 assign _r_nw_in = lsb_msg[next_head][3];
 assign _addr = lsb_addr[next_head];
 assign _data_in = lsb_sv[next_head];

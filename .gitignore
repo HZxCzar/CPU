@@ -1,6 +1,7 @@
 /testcase
 /testspace/*
 /serial
+/fpga/fpga
 !.keep
 Makefile cp
 *.out
