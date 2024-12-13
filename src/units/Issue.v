@@ -6,6 +6,7 @@ module Issue(
 
     input  wire                 _clear,
 
+    input  wire                 _pc_sel,
     input  wire [31:0]          _inst_in,
     input  wire                 _inst_ready_in,
     input  wire [31:0]          _inst_addr,
@@ -85,7 +86,7 @@ always @(posedge clk_in) begin
         tail <= 0;
         size <= 0;
     end else if(rdy_in)begin
-        if(_clear)begin: clean
+        if(_clear || _pc_sel)begin: clean
         head<=0;
         tail<=0;
         size<=0;

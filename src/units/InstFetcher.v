@@ -21,8 +21,6 @@ module InstFetcher(
     input  wire [31:0]          _rob_new_pc,
     input  wire [31:0]          _rob_imm,
 
-    //Inner Decoder
-
     //ROB outputs with dependencies
     output wire [4:0]           _get_register_status_1,
     output wire [4:0]           _get_register_status_2,
@@ -82,6 +80,7 @@ module InstFetcher(
     output wire [4:0]           _lsb_rs_dep2
 );
 reg[31:0] _pc;
+wire _pc_sel;
 wire _queue_not_full;
 reg [31:0] _jalr_rd;
 wire[31:0] _formalized_inst;
@@ -99,6 +98,7 @@ Decoder dc(
     ._inst_ready_in(_inst_ready_in),
     ._inst_addr(_pc),
     ._next_pc(_next_pc),
+    ._pc_sel(_pc_sel),
     ._formalized_inst(_formalized_inst),
     ._rvc(_rvc)
 );
@@ -108,6 +108,7 @@ Issue launcher(
     .rst_in(rst_in),
     .rdy_in(rdy_in),
     ._clear(_clear),
+    ._pc_sel(_pc_sel),
     ._inst_in(_formalized_inst),
     ._inst_ready_in(_inst_ready_in),
     ._inst_addr(_pc),
