@@ -189,6 +189,9 @@ wire [31:0] _data_in_LoadStoreBuffer2Mem;
 wire _lsb_mem_ready_Mem2LoadStoreBuffer;
 wire [31:0] _data_out_Mem2LoadStoreBuffer;
 
+
+wire[4:0] _work_rob_id;
+
 MemControl MEM(
   .clk_in(clk_in),
   .rst_in(rst_in),
@@ -394,7 +397,8 @@ LoadStoreBuffer LSB(
   ._lsb_cdb_ready(_cdb_ls_ready),
   ._lsb_cdb_rob_id(_cdb_ls_rob_id),
   ._lsb_cdb_value(_cdb_ls_value),
-  ._lsb_store_ready(_store_ready_ROB2LSB)
+  ._lsb_store_ready(_store_ready_ROB2LSB),
+  ._work_rob_id(_work_rob_id)
 );
 
 ReorderBuffer ROB(
@@ -446,7 +450,8 @@ ReorderBuffer ROB(
   ._dep_rd_2(_dep_rd_2_ROB2RegisterFile),
   ._dep_value_1(_dep_value_1_ROB2RegisterFile),
   ._dep_value_2(_dep_value_2_ROB2RegisterFile),
-  ._store_ready(_store_ready_ROB2LSB)
+  ._store_ready(_store_ready_ROB2LSB),
+  ._work_rob_id(_work_rob_id)
 );
 
 RegisterFile RF(

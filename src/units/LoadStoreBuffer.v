@@ -35,7 +35,8 @@ module LoadStoreBuffer(
     output wire [31:0]         _lsb_cdb_value,
 
     //Store Control
-    input wire                 _lsb_store_ready
+    input wire                 _lsb_store_ready,
+    input wire[4:0]            _work_rob_id
 );
 reg [4:0] head,tail,size;
 reg busy[0:31];
@@ -88,7 +89,7 @@ always @(posedge clk_in) begin: MainBlock
                 end
             end
         end
-        if(_lsb_store_ready)begin
+        if(_lsb_store_ready && _work_rob_id==lsb_rob_id[head])begin
             lsb_status[head][1]<=1;
         end
         if(_pop_valid)begin

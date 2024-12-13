@@ -66,7 +66,8 @@ module ReorderBuffer(
     input wire [31:0]           _dep_value_2,
 
     //Store Control
-    output wire                 _store_ready
+    output wire                 _store_ready,
+    output wire [4:0]           _work_rob_id
 );
 //编号从1开始
 //特判lui
@@ -199,11 +200,12 @@ assign _stall=commit_valid && (rob_type[head]==7'b1100111);
 assign _rob_new_pc=(rob_type[head]==7'b1100111)?32'b0:inst_addr[head];
 assign _rob_imm=(rob_type[head]==7'b1100111 || rob_value[head][0]==1)?rob_jump_imm[head]:rvc[head]?32'd2:32'd4;
 assign _store_ready=(rob_type[head]==7'b0100011 || rob_type[head]==7'b0000011) && _inst_first_clk;
+assign _work_rob_id=head;
 
-// wire[4:0] _debug_rob_rd=rob_rd[head];
-// wire[31:0] _debug_rob_value=rob_value[head];
-// wire[31:0] _debug_inst_addr=inst_addr[head];
-// wire[6:0] _debug_rob_type=rob_type[head];
+wire[4:0] _debug_rob_rd=rob_rd[head];
+wire[31:0] _debug_rob_value=rob_value[head];
+wire[31:0] _debug_inst_addr=inst_addr[head];
+wire[6:0] _debug_rob_type=rob_type[head];
 
 // wire _debug_queens=_debug_inst_addr==32'hbe||_debug_inst_addr==32'hd0 ||_debug_inst_addr==32'hd4;
 
