@@ -44,33 +44,33 @@ module ReservationStation(
     //ALU inputs
     // input wire                  _alu_full,
     //ALU outputs
-    output wire                 _alu_ready,
-    output wire [4:0]           _alu_rob_id,
-    output wire [6:0]           _alu_type,
-    output wire [3:0]           _alu_op,
-    output wire [31:0]          _alu_v1,
-    output wire [31:0]          _alu_v2
+    output reg                 _alu_ready,
+    output reg [4:0]           _alu_rob_id,
+    output reg [6:0]           _alu_type,
+    output reg [3:0]           _alu_op,
+    output reg [31:0]          _alu_v1,
+    output reg [31:0]          _alu_v2
 );
-reg busy[0:15];
-reg[6:0] rss_type[0:15];
-reg[3:0] rss_op[0:15];
-reg[4:0] rss_rob_id[0:15];
-reg[31:0] rss_r1[0:15];
-reg[31:0] rss_r2[0:15];
-reg[31:0] rss_imm[0:15];
-reg[4:0] rss_dep1[0:15];
-reg[4:0] rss_dep2[0:15];
+reg busy[0:7];
+reg[6:0] rss_type[0:7];
+reg[3:0] rss_op[0:7];
+reg[4:0] rss_rob_id[0:7];
+reg[31:0] rss_r1[0:7];
+reg[31:0] rss_r2[0:7];
+reg[31:0] rss_imm[0:7];
+reg[4:0] rss_dep1[0:7];
+reg[4:0] rss_dep2[0:7];
 wire[3:0] _space;
 wire _pop_valid;
 wire[3:0] _pop_pos;
-reg[4:0] size;
-assign _rs_full=size==5'd16;
+reg[3:0] size;
+assign _rs_full=size>=5'd7;
 always @(posedge clk_in) begin: MainBlock
     integer i;
     if(rst_in || _clear) begin
         size <= 5'b0;
         // if(rst_in)begin
-            for(i=0;i<16;i=i+1)begin
+            for(i=0;i<8;i=i+1)begin
                 busy[i] <= 0;
                 rss_type[i] <= 7'b0;
                 rss_op[i] <= 3'b0;
@@ -88,15 +88,35 @@ always @(posedge clk_in) begin: MainBlock
             rss_type[_space] <= _rs_type;
             rss_op[_space] <= _rs_op;
             rss_rob_id[_space] <= _rs_rob_id;
-            rss_r1[_space] <= _rs_r1;
-            rss_r2[_space] <= _rs_r2;
+            // rss_r1[_space] <= _register_value_1;
+            // rss_r2[_space] <= _register_value_2;
             rss_imm[_space] <= _rs_imm;
-            rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
-            rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
+            if(_rs_has_dep1 && _cdb_ready && _rs_dep1==_cdb_rob_id)begin
+                rss_r1[_space] <= _cdb_value;
+                rss_dep1[_space] <= 0;
+            end else if(_rs_has_dep1 && _cdb_ls_ready && _rs_dep1==_cdb_ls_rob_id)begin
+                rss_r1[_space] <= _cdb_ls_value;
+                rss_dep1[_space] <= 0;
+            end else begin
+                rss_r1[_space] <= _rs_r1;
+                rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
+            end
+            if(_rs_has_dep2 && _cdb_ready && _rs_dep2==_cdb_rob_id)begin
+                rss_r2[_space] <= _cdb_value;
+                rss_dep2[_space] <= 0;
+            end else if(_rs_has_dep2 && _cdb_ls_ready && _rs_dep2==_cdb_ls_rob_id)begin
+                rss_r2[_space] <= _cdb_ls_value;
+                rss_dep2[_space] <= 0;
+            end else begin
+                rss_r2[_space] <= _rs_r2;
+                rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
+            end
+            // rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
+            // rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
             // size <= size + 1;
         end
         
-        for (i = 0;i<16;i=i+1) begin
+        for (i = 0;i<8;i=i+1) begin
             if(busy[i])begin
                 if(_cdb_ready)begin
                     if(rss_dep1[i]==_cdb_rob_id) begin
@@ -152,8 +172,13 @@ always @(posedge clk_in) begin: MainBlock
         end
         if(_pop_valid)begin
             busy[_pop_pos] <= 0;
-            // size <= size - 1;
+            _alu_rob_id<=rss_rob_id[_pop_pos];
+            _alu_type<=rss_type[_pop_pos];
+            _alu_op<=rss_op[_pop_pos];
+            _alu_v1<=rss_r1[_pop_pos];
+            _alu_v2<=(rss_type[_pop_pos]==7'b0110011||rss_type[_pop_pos]==7'b1100011)?rss_r2[_pop_pos]:rss_imm[_pop_pos];
         end
+        _alu_ready <= _pop_valid;
 
         if(_rs_ready && !_pop_valid)begin
             size <= size + 1;
@@ -166,21 +191,21 @@ end
 
 generate
     genvar i;
-    wire _ready[0:15];
-    wire _pop_v[1:31];
-    wire[3:0] _pop_index[1:31];
-    wire _space_v[1:31];
-    wire[3:0] _space_index[1:31];
-    for(i=0;i<16;i=i+1)begin: PopBlock
+    wire _ready[0:7];
+    wire _pop_v[1:15];
+    wire[2:0] _pop_index[1:15];
+    wire _space_v[1:15];
+    wire[2:0] _space_index[1:15];
+    for(i=0;i<8;i=i+1)begin: PopBlock
         assign _ready[i] = busy[i] && !rss_dep1[i] && !rss_dep2[i];
     end
-    for(i=16;i<32;i=i+1)begin: GenBlock
-        assign _pop_v[i] = _ready[i-16];
-        assign _pop_index[i] = i-16;
-        assign _space_v[i] = ~busy[i-16];
-        assign _space_index[i] = i-16;
+    for(i=8;i<16;i=i+1)begin: GenBlock
+        assign _pop_v[i] = _ready[i-8];
+        assign _pop_index[i] = i-8;
+        assign _space_v[i] = ~busy[i-8];
+        assign _space_index[i] = i-8;
     end
-    for(i=1;i<16;i=i+1)begin: WorkBlock
+    for(i=1;i<8;i=i+1)begin: WorkBlock
         assign _pop_v[i]=_pop_v[i<<1] | _pop_v[(i<<1)|1];
         assign _pop_index[i]=_pop_v[i<<1]?_pop_index[i<<1]:_pop_index[(i<<1)|1];
         assign _space_v[i]=_space_v[i<<1] | _space_v[(i<<1)|1];
@@ -204,10 +229,10 @@ assign _pop_valid=_pop_v[1];
 // wire _debug_rss_dep10=rss_dep1[0];
 // wire _debug_rss_dep20=rss_dep2[0];
 // assign _pop_valid=(_ready[0] || _ready[1] || _ready[2] || _ready[3] || _ready[4] || _ready[5] || _ready[6] || _ready[7] || _ready[8] || _ready[9] || _ready[10] || _ready[11] || _ready[12] || _ready[13] || _ready[14] || _ready[15] || _ready[16] || _ready[17] || _ready[18] || _ready[19] || _ready[20] || _ready[21] || _ready[22] || _ready[23] || _ready[24] || _ready[25] || _ready[26] || _ready[27] || _ready[28] || _ready[29] || _ready[30] || _ready[31]);
-assign _alu_ready=_pop_valid;
-assign _alu_rob_id=rss_rob_id[_pop_pos];
-assign _alu_type=rss_type[_pop_pos];
-assign _alu_op=rss_op[_pop_pos];
-assign _alu_v1=rss_r1[_pop_pos];
-assign _alu_v2=(rss_type[_pop_pos]==7'b0110011||rss_type[_pop_pos]==7'b1100011)?rss_r2[_pop_pos]:rss_imm[_pop_pos];
+// assign _alu_ready=_pop_valid;
+// assign _alu_rob_id=rss_rob_id[_pop_pos];
+// assign _alu_type=rss_type[_pop_pos];
+// assign _alu_op=rss_op[_pop_pos];
+// assign _alu_v1=rss_r1[_pop_pos];
+// assign _alu_v2=(rss_type[_pop_pos]==7'b0110011||rss_type[_pop_pos]==7'b1100011)?rss_r2[_pop_pos]:rss_imm[_pop_pos];
 endmodule

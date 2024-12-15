@@ -58,7 +58,7 @@ wire[2:0] _space;
 wire _pop_valid;
 wire[2:0] _pop_pos;
 reg[3:0] size;
-assign _rs_full=size==4'd8;
+assign _rs_full=size>=4'd7;
 always @(posedge clk_in) begin: MainBlock
     integer i;
     if(rst_in || _clear) begin
@@ -78,11 +78,31 @@ always @(posedge clk_in) begin: MainBlock
             busy[_space] <= 1 ;
             rss_type[_space] <= _rs_type;
             rss_rob_id[_space] <= _rs_rob_id;
-            rss_v1[_space] <= _rs_r1;
-            rss_sv[_space] <= _rs_sv;
+            // rss_v1[_space] <= _rs_r1;
+            // rss_sv[_space] <= _rs_sv;
             rss_imm[_space] <= _rs_imm;
-            rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
-            rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
+            // rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
+            // rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
+            if(_rs_has_dep1 && _cdb_ready && _rs_dep1==_cdb_rob_id)begin
+                rss_v1[_space] <= _cdb_value;
+                rss_dep1[_space] <= 0;
+            end else if(_rs_has_dep1 && _cdb_ls_ready && _rs_dep1==_cdb_ls_rob_id)begin
+                rss_v1[_space] <= _cdb_ls_value;
+                rss_dep1[_space] <= 0;
+            end else begin
+                rss_v1[_space] <= _rs_r1;
+                rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
+            end
+            if(_rs_has_dep2 && _cdb_ready && _rs_dep2==_cdb_rob_id)begin
+                rss_sv[_space] <= _cdb_value;
+                rss_dep2[_space] <= 0;
+            end else if(_rs_has_dep2 && _cdb_ls_ready && _rs_dep2==_cdb_ls_rob_id)begin
+                rss_sv[_space] <= _cdb_ls_value;
+                rss_dep2[_space] <= 0;
+            end else begin
+                rss_sv[_space] <= _rs_sv;
+                rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
+            end
             // size <= size + 1;
         end
         

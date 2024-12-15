@@ -47,7 +47,7 @@ reg[3:0] lsb_msg[0:31];//0 for load, 1 for store
 reg[31:0] lsb_sv[0:31];
 reg[1:0] lsb_status[0:31];
 
-assign _ls_full = (size == 32);
+assign _ls_full = size >= 5'd31;
 always @(posedge clk_in) begin: MainBlock
     integer i;
     if(rst_in || _clear) begin
@@ -71,7 +71,7 @@ always @(posedge clk_in) begin: MainBlock
             lsb_sv[tail] <= 0;
             lsb_status[tail] <= 0;
             tail <= tail == 31 ? 0 : tail + 1;
-            size <= size + 1;
+            // size <= size + 1;
         end
         if(_lsb_rs_ready)begin
             for(i=0;i<32;i=i+1)begin
@@ -96,7 +96,13 @@ always @(posedge clk_in) begin: MainBlock
             // last_rob_id <= lsb_rob_id[head];
             busy[head] <= 0;
             head <= head == 31 ? 0 : head + 1;
+            // size <= size - 1;
+        end
+        if(_pop_valid && !_ls_ready)begin
             size <= size - 1;
+        end
+        else if(!_pop_valid && _ls_ready)begin
+            size <= size + 1;
         end
     end
 end
