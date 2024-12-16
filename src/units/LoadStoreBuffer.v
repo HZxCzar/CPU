@@ -25,18 +25,19 @@ module LoadStoreBuffer(
     output wire [31:0]         _addr,
     output wire [31:0]         _data_in,
     //from MEM
-    input wire                 _mem_busy,
+    // input wire                 _mem_busy,
     input wire                 _mem_lsb_ready,
     input wire [31:0]          _data_out,
 
     //to CDB
-    output wire                _lsb_cdb_ready,
-    output wire [4:0]          _lsb_cdb_rob_id,
-    output wire [31:0]         _lsb_cdb_value,
+    output reg                _lsb_cdb_ready,
+    output reg [4:0]          _lsb_cdb_rob_id,
+    output reg [31:0]         _lsb_cdb_value,
 
     //Store Control
     input wire                 _lsb_store_ready,
-    input wire[4:0]            _work_rob_id
+    input wire[4:0]            _work_rob_id,
+    input wire                 _recive
 );
 reg [4:0] head,tail,size;
 reg busy[0:31];
@@ -52,6 +53,7 @@ always @(posedge clk_in) begin: MainBlock
     integer i;
     if(rst_in || _clear) begin
         head <= 0;
+        next_head <= 0;
         tail <= 0;
         size <= 0;
         for(i=0;i<32;i=i+1) begin
@@ -96,7 +98,14 @@ always @(posedge clk_in) begin: MainBlock
             // last_rob_id <= lsb_rob_id[head];
             busy[head] <= 0;
             head <= head == 31 ? 0 : head + 1;
+            _lsb_cdb_ready = 1;
+            _lsb_cdb_rob_id = lsb_rob_id[head];
+            _lsb_cdb_value = (lsb_msg[head][3]==0)?((_op_old==3'b000)?{{24{_data_out[31]}},_data_out[31:24]}:(_op_old==3'b100)?{24'b0,_data_out[31:24]}:(_op_old==3'b001)?{{16{_data_out[31]}},_data_out[31:16]}:(_op_old==3'b101)?{16'b0,_data_out[31:16]}:_data_out):0;
             // size <= size - 1;
+        end else begin
+            _lsb_cdb_ready = 0;
+            _lsb_cdb_rob_id = 0;
+            _lsb_cdb_value = 0;
         end
         if(_pop_valid && !_ls_ready)begin
             size <= size - 1;
@@ -104,15 +113,18 @@ always @(posedge clk_in) begin: MainBlock
         else if(!_pop_valid && _ls_ready)begin
             size <= size + 1;
         end
+        if(_recive)begin
+            next_head<=(next_head==31)?0:next_head+1;
+        end
     end
 end
 wire[2:0] _op_old=lsb_msg[head][2:0];
 
 //由于这个周期mem完成后还未pop，下个周期才会pop，但是不希望卡mem一个周期，所以直接梭哈下一个值
-wire [4:0] next_head = _pop_valid?head == 31 ? 0 : head + 1:head;
+reg [4:0] next_head;
 wire[2:0] _op=lsb_msg[next_head][2:0];
 wire[1:0] _debug_lsb_status = lsb_status[head];
-assign _lsb_mem_ready = busy[next_head] && ((lsb_msg[next_head][3]==0 && lsb_status[next_head][0]==1 && lsb_addr[next_head]!=32'h30000) || lsb_status[next_head]==3) && !_mem_busy;
+assign _lsb_mem_ready = busy[next_head] && ((lsb_msg[next_head][3]==0 && lsb_status[next_head][0]==1 && lsb_addr[next_head]!=32'h30000) || lsb_status[next_head]==3);
 assign _r_nw_in = lsb_msg[next_head][3];
 assign _addr = lsb_addr[next_head];
 assign _data_in = lsb_sv[next_head];
@@ -124,7 +136,7 @@ wire [4:0] _debug_rob_id = lsb_rob_id[next_head];
 
 wire _pop_valid;
 assign _pop_valid = _mem_lsb_ready;
-assign _lsb_cdb_ready = _mem_lsb_ready;
-assign _lsb_cdb_rob_id = lsb_rob_id[head];
-assign _lsb_cdb_value = (lsb_msg[head][3]==0)?((_op_old==3'b000)?{{24{_data_out[31]}},_data_out[31:24]}:(_op_old==3'b100)?{24'b0,_data_out[31:24]}:(_op_old==3'b001)?{{16{_data_out[31]}},_data_out[31:16]}:(_op_old==3'b101)?{16'b0,_data_out[31:16]}:_data_out):0;
+// assign _lsb_cdb_ready = _mem_lsb_ready;
+// assign _lsb_cdb_rob_id = lsb_rob_id[head];
+// assign _lsb_cdb_value = (lsb_msg[head][3]==0)?((_op_old==3'b000)?{{24{_data_out[31]}},_data_out[31:24]}:(_op_old==3'b100)?{24'b0,_data_out[31:24]}:(_op_old==3'b001)?{{16{_data_out[31]}},_data_out[31:16]}:(_op_old==3'b101)?{16'b0,_data_out[31:16]}:_data_out):0;
 endmodule

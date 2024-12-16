@@ -10,7 +10,7 @@ module InstFetcher(
     output  wire                _stall,
 
     //Mem
-    input  wire                  _mem_busy,
+    // input  wire                  _mem_busy,
     input  wire                  _inst_ready_in,
     input  wire [31:0]           _inst_in,
     output wire                  _InstFetcher_need_inst,
@@ -25,10 +25,10 @@ module InstFetcher(
     output wire [4:0]           _get_register_status_1,
     output wire [4:0]           _get_register_status_2,
     //ROB inputs with dependencies
-    input wire [4:0]            _rob_register_dep_1,
-    input wire [31:0]           _rob_register_value_1,
-    input wire [4:0]            _rob_register_dep_2,
-    input wire [31:0]           _rob_register_value_2,
+    // input wire [4:0]            _rob_register_dep_1,
+    // input wire [31:0]           _rob_register_value_1,
+    // input wire [4:0]            _rob_register_dep_2,
+    // input wire [31:0]           _rob_register_value_2,
 
     //ROB inputs
     input  wire                 _rob_full,
@@ -49,13 +49,17 @@ module InstFetcher(
     output wire [6:0]           _rs_type,
     output wire [3:0]           _rs_op,
     output wire [4:0]           _rs_rob_id,
-    output wire [31:0]          _rs_r1,
-    output wire [31:0]          _rs_r2,
+    output wire                  _rs_need_1,
+    output wire                  _rs_need_2,
+    output wire [31:0]           _rs_r1_addr,
     output wire [31:0]          _rs_imm,
-    output wire                 _rs_has_dep1,
-    output wire [4:0]           _rs_dep1,
-    output wire                 _rs_has_dep2,
-    output wire [4:0]           _rs_dep2,
+    // output wire [31:0]          _rs_r1,
+    // output wire [31:0]          _rs_r2,
+    // output wire [31:0]          _rs_imm,
+    // output wire                 _rs_has_dep1,
+    // output wire [4:0]           _rs_dep1,
+    // output wire                 _rs_has_dep2,
+    // output wire [4:0]           _rs_dep2,
 
     //LoadStoreBuffer inputs
     input  wire                 _lsb_full,
@@ -71,13 +75,16 @@ module InstFetcher(
     output wire                 _lsb_rs_ready,
     output wire [6:0]           _lsb_rs_type,
     output wire [4:0]           _lsb_rs_rob_id,
-    output wire [31:0]          _lsb_rs_r1,
-    output wire [31:0]          _lsb_rs_sv,
-    output wire [31:0]          _lsb_rs_imm,
-    output wire                 _lsb_rs_has_dep1,
-    output wire [4:0]           _lsb_rs_dep1,
-    output wire                 _lsb_rs_has_dep2,
-    output wire [4:0]           _lsb_rs_dep2
+    output wire                  _lsb_rs_need_1,
+    output wire                  _lsb_rs_need_2,
+    output wire [31:0]          _lsb_rs_imm
+    // output wire [31:0]          _lsb_rs_r1,
+    // output wire [31:0]          _lsb_rs_sv,
+    // output wire [31:0]          _lsb_rs_imm,
+    // output wire                 _lsb_rs_has_dep1,
+    // output wire [4:0]           _lsb_rs_dep1,
+    // output wire                 _lsb_rs_has_dep2,
+    // output wire [4:0]           _lsb_rs_dep2
 );
 reg[31:0] _pc;
 wire _pc_sel;
@@ -117,10 +124,10 @@ Issue launcher(
     ._InstFetcher_need_inst(_queue_not_full),
     ._get_register_status_1(_get_register_status_1),
     ._get_register_status_2(_get_register_status_2),
-    ._rob_register_dep_1(_rob_register_dep_1),
-    ._rob_register_value_1(_rob_register_value_1),
-    ._rob_register_dep_2(_rob_register_dep_2),
-    ._rob_register_value_2(_rob_register_value_2),
+    // ._rob_register_dep_1(_rob_register_dep_1),
+    // ._rob_register_value_1(_rob_register_value_1),
+    // ._rob_register_dep_2(_rob_register_dep_2),
+    // ._rob_register_value_2(_rob_register_value_2),
     ._rob_full(_rob_full),
     ._rob_tail_id(_rob_tail_id),
     ._rob_ready(_rob_ready),
@@ -135,13 +142,16 @@ Issue launcher(
     ._rs_type(_rs_type),
     ._rs_op(_rs_op),
     ._rs_rob_id(_rs_rob_id),
-    ._rs_r1(_rs_r1),
-    ._rs_r2(_rs_r2),
+    // ._rs_r1(_rs_r1),
+    // ._rs_r2(_rs_r2),
+    ._rs_need_1(_rs_need_1),
+    ._rs_need_2(_rs_need_2),
+    ._rs_r1_addr(_rs_r1_addr),
     ._rs_imm(_rs_imm),
-    ._rs_has_dep1(_rs_has_dep1),
-    ._rs_dep1(_rs_dep1),
-    ._rs_has_dep2(_rs_has_dep2),
-    ._rs_dep2(_rs_dep2),
+    // ._rs_has_dep1(_rs_has_dep1),
+    // ._rs_dep1(_rs_dep1),
+    // ._rs_has_dep2(_rs_has_dep2),
+    // ._rs_dep2(_rs_dep2),
     ._lsb_full(_lsb_full),
     ._lsb_ready(_lsb_ready),
     ._lsb_type(_lsb_type),
@@ -151,13 +161,15 @@ Issue launcher(
     ._lsb_rs_ready(_lsb_rs_ready),
     ._lsb_rs_type(_lsb_rs_type),
     ._lsb_rs_rob_id(_lsb_rs_rob_id),
-    ._lsb_rs_r1(_lsb_rs_r1),
-    ._lsb_rs_sv(_lsb_rs_sv),
-    ._lsb_rs_imm(_lsb_rs_imm),
-    ._lsb_rs_has_dep1(_lsb_rs_has_dep1),
-    ._lsb_rs_dep1(_lsb_rs_dep1),
-    ._lsb_rs_has_dep2(_lsb_rs_has_dep2),
-    ._lsb_rs_dep2(_lsb_rs_dep2)
+    // ._lsb_rs_r1(_lsb_rs_r1),
+    // ._lsb_rs_sv(_lsb_rs_sv),
+    ._lsb_rs_need_1(_lsb_rs_need_1),
+    ._lsb_rs_need_2(_lsb_rs_need_2),
+    ._lsb_rs_imm(_lsb_rs_imm)
+    // ._lsb_rs_has_dep1(_lsb_rs_has_dep1),
+    // ._lsb_rs_dep1(_lsb_rs_dep1),
+    // ._lsb_rs_has_dep2(_lsb_rs_has_dep2),
+    // ._lsb_rs_dep2(_lsb_rs_dep2)
 );
 
 always @(posedge clk_in) begin

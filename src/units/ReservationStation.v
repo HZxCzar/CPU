@@ -10,13 +10,14 @@ module ReservationStation(
     input wire [6:0]            _rs_type,
     input wire [3:0]            _rs_op,
     input wire [4:0]            _rs_rob_id,
-    input wire [31:0]           _rs_r1,
-    input wire [31:0]           _rs_r2,
+    input wire                  _rs_need_1,
+    input wire                  _rs_need_2,
+    input wire [31:0]           _rs_r1_addr,
     input wire [31:0]           _rs_imm,
-    input wire                  _rs_has_dep1,
-    input wire [4:0]            _rs_dep1,
-    input wire                  _rs_has_dep2,
-    input wire [4:0]            _rs_dep2,
+    // input wire                  _rs_has_dep1,
+    // input wire [4:0]            _rs_dep1,
+    // input wire                  _rs_has_dep2,
+    // input wire [4:0]            _rs_dep2,
     // InstFetcher outputs
     output wire                 _rs_full,
 
@@ -27,6 +28,12 @@ module ReservationStation(
     input wire                  _cdb_ls_ready,
     input wire [4:0]            _cdb_ls_rob_id,
     input wire [31:0]           _cdb_ls_value,
+
+    //DEP&VAL
+    input wire [4:0]            _rob_register_dep_1,
+    input wire [31:0]           _rob_register_value_1,
+    input wire [4:0]            _rob_register_dep_2,
+    input wire [31:0]           _rob_register_value_2,
 
     //ROB inputs
     input  wire                 _rob_msg_ready_1,
@@ -88,29 +95,60 @@ always @(posedge clk_in) begin: MainBlock
             rss_type[_space] <= _rs_type;
             rss_op[_space] <= _rs_op;
             rss_rob_id[_space] <= _rs_rob_id;
-            // rss_r1[_space] <= _register_value_1;
-            // rss_r2[_space] <= _register_value_2;
             rss_imm[_space] <= _rs_imm;
-            if(_rs_has_dep1 && _cdb_ready && _rs_dep1==_cdb_rob_id)begin
-                rss_r1[_space] <= _cdb_value;
-                rss_dep1[_space] <= 0;
-            end else if(_rs_has_dep1 && _cdb_ls_ready && _rs_dep1==_cdb_ls_rob_id)begin
-                rss_r1[_space] <= _cdb_ls_value;
-                rss_dep1[_space] <= 0;
+            if(_rs_need_1)begin
+                if(_cdb_ready && _rob_register_dep_1==_cdb_rob_id)begin
+                    rss_r1[_space] <= _cdb_value;
+                    rss_dep1[_space] <= 0;
+                end else if(_cdb_ls_ready && _rob_register_dep_1==_cdb_ls_rob_id)begin
+                    rss_r1[_space] <= _cdb_ls_value;
+                    rss_dep1[_space] <= 0;
+                end else begin
+                    rss_r1[_space] <= _rob_register_value_1;
+                    rss_dep1[_space] <= _rob_register_dep_1;
+                end
             end else begin
-                rss_r1[_space] <= _rs_r1;
-                rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
+                rss_r1[_space] <= _rs_r1_addr;
+                rss_dep1[_space] <= 0;
             end
-            if(_rs_has_dep2 && _cdb_ready && _rs_dep2==_cdb_rob_id)begin
-                rss_r2[_space] <= _cdb_value;
-                rss_dep2[_space] <= 0;
-            end else if(_rs_has_dep2 && _cdb_ls_ready && _rs_dep2==_cdb_ls_rob_id)begin
-                rss_r2[_space] <= _cdb_ls_value;
-                rss_dep2[_space] <= 0;
+
+            if(_rs_need_2)begin
+                if(_cdb_ready && _rob_register_dep_2==_cdb_rob_id)begin
+                    rss_r2[_space] <= _cdb_value;
+                    rss_dep2[_space] <= 0;
+                end else if(_cdb_ls_ready && _rob_register_dep_2==_cdb_ls_rob_id)begin
+                    rss_r2[_space] <= _cdb_ls_value;
+                    rss_dep2[_space] <= 0;
+                end else begin
+                    rss_r2[_space] <= _rob_register_value_2;
+                    rss_dep2[_space] <= _rob_register_dep_2;
+                end
             end else begin
-                rss_r2[_space] <= _rs_r2;
-                rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
+                rss_r2[_space] <= 32'b0;
+                rss_dep2[_space] <= 0;
             end
+
+
+            // if(_rs_has_dep1 && _cdb_ready && _rs_dep1==_cdb_rob_id)begin
+            //     rss_r1[_space] <= _cdb_value;
+            //     rss_dep1[_space] <= 0;
+            // end else if(_rs_has_dep1 && _cdb_ls_ready && _rs_dep1==_cdb_ls_rob_id)begin
+            //     rss_r1[_space] <= _cdb_ls_value;
+            //     rss_dep1[_space] <= 0;
+            // end else begin
+            //     rss_r1[_space] <= _rs_r1;
+            //     rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
+            // end
+            // if(_rs_has_dep2 && _cdb_ready && _rs_dep2==_cdb_rob_id)begin
+            //     rss_r2[_space] <= _cdb_value;
+            //     rss_dep2[_space] <= 0;
+            // end else if(_rs_has_dep2 && _cdb_ls_ready && _rs_dep2==_cdb_ls_rob_id)begin
+            //     rss_r2[_space] <= _cdb_ls_value;
+            //     rss_dep2[_space] <= 0;
+            // end else begin
+            //     rss_r2[_space] <= _rs_r2;
+            //     rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
+            // end
             // rss_dep1[_space] <= _rs_has_dep1?_rs_dep1:0;
             // rss_dep2[_space] <= _rs_has_dep2?_rs_dep2:0;
             // size <= size + 1;

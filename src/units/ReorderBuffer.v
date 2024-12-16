@@ -11,10 +11,10 @@ module ReorderBuffer(
     input wire [4:0]            _get_register_status_1,
     input wire [4:0]            _get_register_status_2,
     //Decoder outputs with dependencies
-    output wire [4:0]           _register_dep_1,
-    output wire [31:0]          _register_value_1,
-    output wire [4:0]           _register_dep_2,
-    output wire [31:0]          _register_value_2,
+    output reg [4:0]           _register_dep_1,
+    output reg [31:0]          _register_value_1,
+    output reg [4:0]           _register_dep_2,
+    output reg [31:0]          _register_value_2,
     //Decoder inputs
     input wire                  _rob_ready,
     input wire [6:0]            _rob_type,
@@ -91,10 +91,10 @@ assign _rf_launch_register_id=_rob_rd;
 
 assign _ask_rd_1=_get_register_status_1;
 assign _ask_rd_2=_get_register_status_2;
-assign _register_dep_1=(rob_status[_dep_rd_1]==2)?1'b0:_dep_rd_1;
-assign _register_dep_2=(rob_status[_dep_rd_2]==2)?1'b0:_dep_rd_2;
-assign _register_value_1=_dep_rd_1?rob_value[_dep_rd_1]:_dep_value_1;
-assign _register_value_2=_dep_rd_2?rob_value[_dep_rd_2]:_dep_value_2;
+// assign _register_dep_1=(rob_status[_dep_rd_1]==2)?1'b0:_dep_rd_1;
+// assign _register_dep_2=(rob_status[_dep_rd_2]==2)?1'b0:_dep_rd_2;
+// assign _register_value_1=_dep_rd_1?rob_value[_dep_rd_1]:_dep_value_1;
+// assign _register_value_2=_dep_rd_2?rob_value[_dep_rd_2]:_dep_value_2;
 
 always @(posedge clk_in)begin:MainBlock
     integer i;
@@ -127,10 +127,10 @@ always @(posedge clk_in)begin:MainBlock
         rvc[i]<=0;
         end
     end else if(rdy_in)begin
-        // _register_dep_1<=(rob_status[_dep_rd_1]==2)?1'b0:_dep_rd_1;
-        // _register_dep_2<=(rob_status[_dep_rd_2]==2)?1'b0:_dep_rd_2;
-        // _register_value_1<=_dep_rd_1?rob_value[_dep_rd_1]:_dep_value_1;
-        // _register_value_2<=_dep_rd_2?rob_value[_dep_rd_2]:_dep_value_2;
+        _register_dep_1<=(rob_status[_dep_rd_1]==2)?1'b0:_dep_rd_1;
+        _register_dep_2<=(rob_status[_dep_rd_2]==2)?1'b0:_dep_rd_2;
+        _register_value_1<=_dep_rd_1?rob_value[_dep_rd_1]:_dep_value_1;
+        _register_value_2<=_dep_rd_2?rob_value[_dep_rd_2]:_dep_value_2;
         if(_rob_ready)begin
             busy[tail]<=1;
             rob_type[tail]<=_rob_type;
@@ -203,6 +203,11 @@ wire[31:0] _debug_rob_value=rob_value[head];
 wire[31:0] _debug_inst_addr=inst_addr[head];
 wire[6:0] _debug_rob_type=rob_type[head];
 
+// wire debug_float152=_debug_inst_addr==32'h152;
+// wire debug_float142=_debug_inst_addr==32'h142;
+// wire debug_float15e=_debug_inst_addr==32'h15e;
+// wire debug_float16a=_debug_inst_addr==32'h16a;
+// wire debug_float172=_debug_inst_addr==32'h172;
 // wire _debug_queens=_debug_inst_addr==32'hbe||_debug_inst_addr==32'hd0 ||_debug_inst_addr==32'hd4;
 
 // wire [31:0] _debug_addr_1=inst_addr[1];
