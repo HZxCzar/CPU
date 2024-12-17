@@ -124,7 +124,7 @@ wire[2:0] _op_old=lsb_msg[head][2:0];
 reg [4:0] next_head;
 wire[2:0] _op=lsb_msg[next_head][2:0];
 wire[1:0] _debug_lsb_status = lsb_status[head];
-assign _lsb_mem_ready = busy[next_head] && ((lsb_msg[next_head][3]==0 && lsb_status[next_head][0]==1 && lsb_addr[next_head]!=32'h30000) || lsb_status[next_head]==3);
+assign _lsb_mem_ready = busy[next_head] && ((lsb_msg[next_head][3]==0 && lsb_status[next_head][0]==1 && lsb_addr[next_head]<32'h30000) || lsb_status[next_head]==3);
 assign _r_nw_in = lsb_msg[next_head][3];
 assign _addr = lsb_addr[next_head];
 assign _data_in = lsb_sv[next_head];

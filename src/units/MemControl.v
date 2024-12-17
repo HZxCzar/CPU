@@ -80,6 +80,7 @@ always @(posedge clk_in) begin
         adder<=0;
         waiter<=0;
         mem_wr<=0;
+        mem_a<=0;
         _lsb_mem_ready_Mem2LoadStoreBuffer<=0;
         _data_out_Mem2LoadStoreBuffer<=0;
         data_in[1]<=0;
@@ -122,7 +123,7 @@ always @(posedge clk_in) begin
             waiter<=waiter-1;
             mem_a<=mem_a+1;
         end
-        else if(_lsb_mem_ready_LoadStoreBuffer2Mem && !(_addr_LoadStoreBuffer2Mem==32'h30000 && io_buffer_full))begin// && !(_addr_LoadStoreBuffer2Mem==32'h30000 && io_buffer_full)
+        else if(_lsb_mem_ready_LoadStoreBuffer2Mem && !(_addr_LoadStoreBuffer2Mem>=32'h30000 && io_buffer_full))begin// && !(_addr_LoadStoreBuffer2Mem==32'h30000 && io_buffer_full)
             _recive<=1;
             if(_r_nw_in_LoadStoreBuffer2Mem)begin
                 work_on_mode <= 2'b01;
@@ -133,6 +134,7 @@ always @(posedge clk_in) begin
             else begin
                 mem_wr<=0;
                 work_on_mode <= 2'b10;
+                mem_dout<=0;
             end
             adder<=0;
             waiter<=_work_type+1;
@@ -146,6 +148,16 @@ always @(posedge clk_in) begin
             waiter<=2;
             mem_a<=_ICache_addr;
         end
+    end else begin
+        _stall<=1'b0;
+        _recive<=0;
+        work_on_mode <= 2'b00;
+        adder<=0;
+        waiter<=0;
+        mem_wr<=0;
+        mem_a<=0;
+        _lsb_mem_ready_Mem2LoadStoreBuffer<=0;
+        _data_out_Mem2LoadStoreBuffer<=0;
     end
 end
 // assign mem_dout=(work_on_mode==2'b01)?(adder==3)?_data_in_LoadStoreBuffer2Mem[31:24]:(adder==2)?_data_in_LoadStoreBuffer2Mem[23:16]:(adder==1)?_data_in_LoadStoreBuffer2Mem[15:8]:(adder==0)?_data_in_LoadStoreBuffer2Mem[7:0]:0:0;

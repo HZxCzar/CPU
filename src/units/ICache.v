@@ -85,7 +85,7 @@ always @(posedge clk_in) begin:MainBlock
                     // tag[_index]<=_addr[17:8];
                     line[_offset]<=1;
                     cache[_addr[7:1]]<=_mem_inst_in;
-                    _addr<=_addr+2;
+                    _addr<=(_addr<=32'h15000)?_addr+2:0;
                     if(_remaking)begin
                         _remaking<=0;
                     end
@@ -108,7 +108,8 @@ always @(posedge clk_in) begin:MainBlock
                     // tag[_index]<=_addr[17:8];
                     line[_offset]<=1;
                     cache[_addr[7:1]]<=_mem_inst_in;
-                    _addr<=_addr+2;
+                    // _addr<=_addr+2;
+                    _addr<=(_addr<=32'h15000)?_addr+2:0;
                     if(_remaking)begin
                         _remaking<=0;
                     end
@@ -151,7 +152,8 @@ always @(posedge clk_in) begin:MainBlock
                     // tag[_index]<=_addr[17:8];
                     line[_offset]<=1;
                     cache[_addr[7:1]]<=_mem_inst_in;
-                    _addr<=_addr+2;
+                    // _addr<=_addr+2;
+                    _addr<=(_addr<=32'h15000)?_addr+2:0;
                     if(_remaking)begin
                         _remaking<=0;
                     end
